@@ -102,7 +102,7 @@ chunkwrap creates a `.chunkwrap_state` file in the current directory to track pr
 
 ## Requirements
 
-- Python 3.6+
+- Python 3.11+
 - pyperclip library
 
 ## License
