@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=64.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "ChunkWrap"
-version = "0.1.0"
+name = "chunkwrap"
+version = "0.3.0"
 description = "A project that splits files and copies them to paste buffer with context for an LLM."
 readme = "README.md"
 authors = [
@@ -15,14 +19,41 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "build>=1.2.2.post1",
     "pytest>=6.0.0",
     "pytest-mock>=3.14.1",
     "pytest-cov>=2.0.0",
     "black>=22.0.0",
     "flake8>=4.0.0",
     "mypy>=0.910",
+    "twine>=6.1.0"
 ]
 
 [project.urls]
-Homepage = "https://github.com/magicalbob/ChunkWrap/wiki"
-Repository = "https://github.com/magicalbob/ChunkWrap"
+Homepage = "https://github.com/magicalbob/chunkwrap/wiki"
+Repository = "https://github.com/magicalbob/chunkwrap"
+
+[project.scripts]
+chunkwrap = "chunkwrap.chunkwrap:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+    
+[tool.black]
+line-length = 88
+target-version = ['py38']
+    
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.mypy]
+python_version = "0.1.0"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

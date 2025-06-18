@@ -1,10 +1,10 @@
-# ChunkWrap
+# chunkwrap
 
 A Python utility for splitting large files into manageable chunks and wrapping them with custom prompts for Large Language Model (LLM) processing.
 
 ## Overview
 
-ChunkWrap helps you process large files with LLMs by automatically splitting them into smaller chunks and wrapping each chunk with your specified prompt. It maintains state between runs, so you can process one chunk at a time without losing track of your progress.
+chunkwrap helps you process large files with LLMs by automatically splitting them into smaller chunks and wrapping each chunk with your specified prompt. It maintains state between runs, so you can process one chunk at a time without losing track of your progress.
 
 ## Features
 
@@ -91,7 +91,7 @@ The final chunk omits the chunk counter and uses `--lastprompt` if provided.
 
 ## State File
 
-ChunkWrap creates a `.chunkwrap_state` file in the current directory to track progress. Delete this file or use `--reset` to start over with a new file or prompt.
+chunkwrap creates a `.chunkwrap_state` file in the current directory to track progress. Delete this file or use `--reset` to start over with a new file or prompt.
 
 ## Use Cases
 

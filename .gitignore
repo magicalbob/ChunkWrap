@@ -8,6 +8,6 @@ venv
 .chunkwrap_state
 
 # Generated files
-**/chunker.egg-info
+**/*.egg-info
 **/__pycache__
 dist
