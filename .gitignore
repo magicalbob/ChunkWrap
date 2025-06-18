@@ -1,6 +1,9 @@
 # Python virtual env
 venv
 
+# Test coverage
+.coverage
+
 # Temp folder for chunkers state
 .chunkwrap_state
 
