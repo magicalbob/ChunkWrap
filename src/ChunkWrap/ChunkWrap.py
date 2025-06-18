@@ -3,8 +3,11 @@ import argparse
 import os
 import math
 import pyperclip
+import re
+import json
 
 STATE_FILE = '.chunkwrap_state'
+TRUFFLEHOG_REGEX_FILE = 'truffleHogRegexes.json'  # Make sure you have this file with regex patterns
 
 def read_state():
     if os.path.exists(STATE_FILE):
@@ -23,6 +26,18 @@ def reset_state():
 def chunk_file(text, chunk_size):
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
+def load_trufflehog_regexes():
+    if os.path.exists(TRUFFLEHOG_REGEX_FILE):
+        with open(TRUFFLEHOG_REGEX_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def mask_secrets(text, regex_patterns):
+    """Mask sensitive information using TruffleHog regex patterns"""
+    for key, pattern in regex_patterns.items():
+        text = re.sub(pattern, f'***MASKED-{key}***', text)
+    return text
+
 def main():
     parser = argparse.ArgumentParser(description="Split file into chunks and wrap each chunk for LLM processing.")
     parser.add_argument('--prompt', type=str, required=True, help='Prompt text for regular chunks')
@@ -37,6 +52,9 @@ def main():
         print("State reset. Start from first chunk next run.")
         return
 
+    # Load TruffleHog regex patterns
+    regex_patterns = load_trufflehog_regexes()
+
     with open(args.file, 'r', encoding='utf-8') as f:
         content = f.read()
 
@@ -50,13 +68,15 @@ def main():
 
     chunk = chunks[idx]
 
+    # Mask secrets
+    masked_chunk = mask_secrets(chunk, regex_patterns)
+
     # Choose wrapping for this chunk
     if idx < total_chunks - 1:
-        # Not last chunk
-        wrapper = f"{args.prompt} (chunk {idx+1} of {total_chunks})\n\"\"\"\n{chunk}\n\"\"\""
+        wrapper = f"{args.prompt} (chunk {idx+1} of {total_chunks})\n\"\"\"\n{masked_chunk}\n\"\"\""
     else:
         lastprompt = args.lastprompt if args.lastprompt else args.prompt
-        wrapper = f"{lastprompt}\n\"\"\"\n{chunk}\n\"\"\""
+        wrapper = f"{lastprompt}\n\"\"\"\n{masked_chunk}\n\"\"\""
 
     pyperclip.copy(wrapper)
     print(f"Chunk {idx+1} of {total_chunks} is now in the paste buffer.")
