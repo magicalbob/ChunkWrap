@@ -5,6 +5,7 @@ import math
 import pyperclip
 import re
 import json
+import tomllib
 
 STATE_FILE = '.chunkwrap_state'
 TRUFFLEHOG_REGEX_FILE = 'truffleHogRegexes.json'  # Make sure you have this file with regex patterns
@@ -38,6 +39,20 @@ def mask_secrets(text, regex_patterns):
         text = re.sub(pattern, f'***MASKED-{key}***', text)
     return text
 
+def get_version():
+    config_path = 'pyproject.toml'
+    if not os.path.exists(config_path):
+        return "unknown"
+
+    if 'tomllib' in globals():
+        with open(config_path, 'rb') as f:
+            data = tomllib.load(f)
+    else:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            data = toml.load(f)
+
+    return data.get('project', {}).get('version', 'unknown')
+
 def main():
     parser = argparse.ArgumentParser(description="Split file into chunks and wrap each chunk for LLM processing.")
     parser.add_argument('--prompt', type=str, required=True, help='Prompt text for regular chunks')
@@ -45,6 +60,7 @@ def main():
     parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
     parser.add_argument('--reset', action='store_true', help='Reset chunk index and start over')
     parser.add_argument('--size', type=int, default=10000, help='Chunk size (default 10,000)')
+    parser.add_argument('--version', action='version', version=f'%(prog)s {get_version()}')
     args = parser.parse_args()
 
     if args.reset:

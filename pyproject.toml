@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chunkwrap"
-version = "0.3.0"
+version = "0.4.0"
 description = "A project that splits files and copies them to paste buffer with context for an LLM."
 readme = "README.md"
 authors = [
@@ -53,7 +53,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 
 [tool.mypy]
-python_version = "0.1.0"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
