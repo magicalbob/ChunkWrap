@@ -6,6 +6,7 @@ import pyperclip
 import re
 import json
 import tomllib
+from importlib.metadata import version, PackageNotFoundError
 
 STATE_FILE = '.chunkwrap_state'
 TRUFFLEHOG_REGEX_FILE = 'truffleHogRegexes.json'  # Make sure you have this file with regex patterns
@@ -40,18 +41,10 @@ def mask_secrets(text, regex_patterns):
     return text
 
 def get_version():
-    config_path = 'pyproject.toml'
-    if not os.path.exists(config_path):
+    try:
+        return version("chunkwrap")
+    except PackageNotFoundError:
         return "unknown"
-
-    if 'tomllib' in globals():
-        with open(config_path, 'rb') as f:
-            data = tomllib.load(f)
-    else:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            data = toml.load(f)
-
-    return data.get('project', {}).get('version', 'unknown')
 
 def main():
     parser = argparse.ArgumentParser(description="Split file into chunks and wrap each chunk for LLM processing.")
