@@ -8,7 +8,7 @@ from io import StringIO
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from chunker.chunker import read_state, write_state, reset_state, chunk_file, main
+from ChunkWrap.ChunkWrap import read_state, write_state, reset_state, chunk_file, main
 
 STATE_FILE = '.chunkwrap_state'
 
@@ -113,14 +113,14 @@ def test_clipboard_copy(mocker):
     pyperclip.copy.assert_called_with("Test copy")
 
 
-@patch('sys.argv', ['chunker.py', '--prompt', 'Test prompt', '--file', 'test.txt'])
+@patch('sys.argv', ['ChunkWrap.py', '--prompt', 'Test prompt', '--file', 'test.txt'])
 @patch('builtins.open', mock_open(read_data='A' * 100))  # 100 character file
 @patch('pyperclip.copy')
 @patch('builtins.print')
 def test_main_multiple_chunks(mock_print, mock_copy, setup_state_file):
     """Test main function with multiple chunks."""
     # Mock a large file that will be split into multiple chunks
-    with patch('sys.argv', ['chunker.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
+    with patch('sys.argv', ['ChunkWrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
         main()
     
     # Should process first chunk
@@ -131,7 +131,7 @@ def test_main_multiple_chunks(mock_print, mock_copy, setup_state_file):
     mock_print.assert_any_call("Run this script again for the next chunk.")
 
 
-@patch('sys.argv', ['chunker.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10'])
+@patch('sys.argv', ['ChunkWrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10'])
 @patch('builtins.open', mock_open(read_data='Short'))
 @patch('pyperclip.copy')
 @patch('builtins.print')
@@ -157,7 +157,7 @@ def test_state_file_persistence(setup_state_file):
     assert read_state() == 10
 
 
-@patch('sys.argv', ['chunker.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt'])
+@patch('sys.argv', ['ChunkWrap.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt'])
 def test_main_file_not_found():
     """Test main function with non-existent file."""
     with pytest.raises(FileNotFoundError):

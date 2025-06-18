@@ -1,5 +1,5 @@
 [project]
-name = "chunker"
+name = "ChunkWrap"
 version = "0.1.0"
 description = "A project that splits files and copies them to paste buffer with context for an LLM."
 readme = "README.md"
@@ -24,5 +24,5 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/magicalbob/chunker/wiki"
-Repository = "https://github.com/magicalbob/chunker"
+Homepage = "https://github.com/magicalbob/ChunkWrap/wiki"
+Repository = "https://github.com/magicalbob/ChunkWrap"
