@@ -1,0 +1,27 @@
+[project]
+name = "chunker"
+version = "0.1.0"
+description = "A project that splits files and copies them to paste buffer with context for an LLM."
+readme = "README.md"
+authors = [
+    { name = "Ian Ellis", email = "ellisiana@gmail.com" }
+]
+license = { file = "LICENSE" }
+keywords = ["copilot", "llm", "development", "project assistance"]
+
+dependencies = [
+    "pyperclip>=1.9.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.910",
+]
+
+[project.urls]
+Homepage = "https://github.com/magicalbob/chunker/wiki"
+Repository = "https://github.com/magicalbob/chunker"
