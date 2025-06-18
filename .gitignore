@@ -6,3 +6,4 @@ venv
 
 # Generated files
 **/chunker.egg-info
+**/__pycache__
