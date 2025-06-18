@@ -1,0 +1,8 @@
+# Python virtual env
+venv
+
+# Temp folder for chunkers state
+.chunkwrap_state
+
+# Generated files
+**/chunker.egg-info
