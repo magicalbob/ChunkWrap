@@ -3,6 +3,7 @@ import sys
 import pytest
 import pyperclip
 from unittest.mock import mock_open, patch, MagicMock
+from importlib.metadata import PackageNotFoundError
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -179,3 +180,39 @@ def test_chunk_file_various_sizes():
 
     chunks = chunk_file(text, 1000)
     assert chunks == ["Hello World"]
+
+@patch('os.path.exists', return_value=True)
+@patch('builtins.open', new_callable=mock_open, read_data='{"API":"API_KEY_[0-9]+"}')
+def test_load_trufflehog_regexes_exists(mock_file, mock_exists):
+    from chunkwrap.chunkwrap import load_trufflehog_regexes
+    result = load_trufflehog_regexes()
+    assert "API" in result
+    assert result["API"] == "API_KEY_[0-9]+"
+
+@patch('os.path.exists', return_value=False)
+def test_load_trufflehog_regexes_missing(mock_exists):
+    from chunkwrap.chunkwrap import load_trufflehog_regexes
+    assert load_trufflehog_regexes() == {}
+
+def test_mask_secrets_basic():
+    from chunkwrap.chunkwrap import mask_secrets
+    text = "API key: API_KEY_12345"
+    regexes = {"API": "API_KEY_\\d+"}
+    result = mask_secrets(text, regexes)
+    assert "***MASKED-API***" in result
+
+@patch('chunkwrap.chunkwrap.version', side_effect=PackageNotFoundError)
+def test_get_version_fallback(mock_version):  # Make sure this line is indented properly
+    from chunkwrap.chunkwrap import get_version
+    assert get_version() == "unknown"
+
+@patch('chunkwrap.chunkwrap.read_state', return_value=5)
+@patch('chunkwrap.chunkwrap.chunk_file', return_value=['chunk1', 'chunk2', 'chunk3', 'chunk4', 'chunk5'])
+@patch('chunkwrap.chunkwrap.read_files', return_value="some data")
+@patch('chunkwrap.chunkwrap.load_trufflehog_regexes', return_value={})
+@patch('builtins.print')
+def test_main_all_chunks_processed(mock_print, mock_regexes, mock_read_files, mock_chunks, mock_state):
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Prompt', '--file', 'file.txt']):
+        from chunkwrap.chunkwrap import main
+        main()
+    mock_print.assert_any_call("All chunks processed! Use --reset to start over.")
