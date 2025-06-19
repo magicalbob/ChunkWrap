@@ -7,7 +7,7 @@ from unittest.mock import mock_open, patch, MagicMock
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from chunkwrap.chunkwrap import read_state, write_state, reset_state, chunk_file, main
+from chunkwrap.chunkwrap import read_state, write_state, reset_state, chunk_file, read_files, main
 
 STATE_FILE = '.chunkwrap_state'
 
@@ -72,15 +72,53 @@ def test_clipboard_copy(mocker):
     pyperclip.copy("Test copy")
     pyperclip.copy.assert_called_with("Test copy")
 
+def test_read_files():
+    """Test the new read_files function with mocked file operations"""
+    mock_content = "Test file content"
+    
+    with patch('os.path.exists', return_value=True):
+        with patch('builtins.open', mock_open(read_data=mock_content)):
+            result = read_files(['test.txt'])
+            expected = f"\n{'='*50}\nFILE: test.txt\n{'='*50}\n{mock_content}"
+            assert result == expected
+
+def test_read_files_multiple():
+    """Test read_files with multiple files"""
+    def mock_open_multiple(filename, *args, **kwargs):
+        content_map = {
+            'file1.txt': 'Content 1',
+            'file2.txt': 'Content 2'
+        }
+        return mock_open(read_data=content_map.get(filename, ''))()
+    
+    with patch('os.path.exists', return_value=True):
+        with patch('builtins.open', side_effect=mock_open_multiple):
+            result = read_files(['file1.txt', 'file2.txt'])
+            assert 'FILE: file1.txt' in result
+            assert 'FILE: file2.txt' in result
+            assert 'Content 1' in result
+            assert 'Content 2' in result
+
+def test_read_files_nonexistent():
+    """Test read_files behavior with nonexistent files"""
+    with patch('os.path.exists', return_value=False):
+        with patch('builtins.print') as mock_print:
+            result = read_files(['nonexistent.txt'])
+            assert result == ''
+            mock_print.assert_called_with("Warning: File 'nonexistent.txt' not found, skipping...")
+
 # Patch get_version so tomllib.load isn't called (fixes binary open bug)
 @patch('chunkwrap.chunkwrap.get_version', return_value="test")
 @patch('pyperclip.copy')
-@patch('builtins.open', new_callable=mock_open, read_data='A' * 100)
+@patch('chunkwrap.chunkwrap.read_files')
 @patch('builtins.print')
-def test_main_multiple_chunks(mock_print, mock_file, mock_copy, mock_version, setup_state_file):
-    # Will use the mocked open for 'test.txt'
+def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_version, setup_state_file):
+    # Mock read_files to return content that will create 2 chunks when split at size 50
+    mock_read_files.return_value = 'A' * 100
+    
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
         main()
+    
     expected_wrapper = 'Test prompt (chunk 1 of 2)\n"""\n' + 'A' * 50 + '\n"""'
     mock_copy.assert_called_with(expected_wrapper)
     mock_print.assert_any_call("Chunk 1 of 2 is now in the paste buffer.")
@@ -88,11 +126,14 @@ def test_main_multiple_chunks(mock_print, mock_file, mock_copy, mock_version, se
 
 @patch('chunkwrap.chunkwrap.get_version', return_value="test")
 @patch('pyperclip.copy')
-@patch('builtins.open', new_callable=mock_open, read_data='Short')
+@patch('chunkwrap.chunkwrap.read_files')
 @patch('builtins.print')
-def test_main_single_chunk_no_counter(mock_print, mock_file, mock_copy, mock_version, setup_state_file):
+def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mock_version, setup_state_file):
+    mock_read_files.return_value = 'Short'
+    
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10']):
         main()
+    
     expected_wrapper = 'Test prompt\n"""\nShort\n"""'
     mock_copy.assert_called_with(expected_wrapper)
 
@@ -102,10 +143,29 @@ def test_state_file_persistence(setup_state_file):
     write_state(10)
     assert read_state() == 10
 
-@patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt'])
-def test_main_file_not_found():
-    with pytest.raises(FileNotFoundError):
+@patch('chunkwrap.chunkwrap.read_files')
+@patch('builtins.print')
+def test_main_no_content_found(mock_print, mock_read_files):
+    """Test behavior when no content is found in files"""
+    mock_read_files.return_value = ''
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt']):
         main()
+    
+    mock_print.assert_called_with("No content found in any of the specified files.")
+
+@patch('chunkwrap.chunkwrap.get_version', return_value="test")
+@patch('pyperclip.copy')
+@patch('chunkwrap.chunkwrap.read_files')
+@patch('builtins.print')
+def test_main_multiple_files_info(mock_print, mock_read_files, mock_copy, mock_version, setup_state_file):
+    """Test that multiple file processing shows file info"""
+    mock_read_files.return_value = 'Short content'
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'file1.txt', 'file2.txt']):
+        main()
+    
+    mock_print.assert_any_call("Processing 2 files: file1.txt, file2.txt")
 
 def test_chunk_file_various_sizes():
     text = "Hello World"
