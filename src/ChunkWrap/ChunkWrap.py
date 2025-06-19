@@ -40,6 +40,27 @@ def mask_secrets(text, regex_patterns):
         text = re.sub(pattern, f'***MASKED-{key}***', text)
     return text
 
+def read_files(file_paths):
+    """Read multiple files and concatenate their content with file separators"""
+    combined_content = []
+    
+    for file_path in file_paths:
+        if not os.path.exists(file_path):
+            print(f"Warning: File '{file_path}' not found, skipping...")
+            continue
+            
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                # Add file header to identify content source
+                file_header = f"\n{'='*50}\n" + f"FILE: {file_path}\n" + f"{'='*50}\n"
+                combined_content.append(file_header + content)
+        except Exception as e:
+            print(f"Error reading file '{file_path}': {e}")
+            continue
+    
+    return '\n'.join(combined_content)
+
 def get_version():
     try:
         return version("chunkwrap")
@@ -47,9 +68,9 @@ def get_version():
         return "unknown"
 
 def main():
-    parser = argparse.ArgumentParser(description="Split file into chunks and wrap each chunk for LLM processing.")
+    parser = argparse.ArgumentParser(description="Split file(s) into chunks and wrap each chunk for LLM processing.")
     parser.add_argument('--prompt', type=str, required=True, help='Prompt text for regular chunks')
-    parser.add_argument('--file', type=str, required=True, help='File to process')
+    parser.add_argument('--file', type=str, nargs='+', required=True, help='File(s) to process')
     parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
     parser.add_argument('--reset', action='store_true', help='Reset chunk index and start over')
     parser.add_argument('--size', type=int, default=10000, help='Chunk size (default 10,000)')
@@ -64,8 +85,12 @@ def main():
     # Load TruffleHog regex patterns
     regex_patterns = load_trufflehog_regexes()
 
-    with open(args.file, 'r', encoding='utf-8') as f:
-        content = f.read()
+    # Read all files and combine content
+    content = read_files(args.file)
+    
+    if not content.strip():
+        print("No content found in any of the specified files.")
+        return
 
     chunks = chunk_file(content, args.size)
     total_chunks = len(chunks)
@@ -89,6 +114,8 @@ def main():
 
     pyperclip.copy(wrapper)
     print(f"Chunk {idx+1} of {total_chunks} is now in the paste buffer.")
+    if len(args.file) > 1:
+        print(f"Processing {len(args.file)} files: {', '.join(args.file)}")
     if idx < total_chunks - 1:
         print("Run this script again for the next chunk.")
     else:
