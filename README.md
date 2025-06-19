@@ -56,11 +56,8 @@ Installation
 
 2.  Install required dependencies:
 
-    bash
-
-    ```
+    ```bash
     pip install pyperclip
-
     ```
 
 Usage
@@ -68,63 +65,45 @@ Usage
 
 ### Basic Usage
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Analyze this code:" --file file1.txt
-
 ```
 
 ### With Multiple Files
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Review content:" --file file1.py file2.md
-
 ```
 
 ### With Secret Masking
 
 Place a `truffleHogRegexes.json` file in the same directory. Example:
 
-json
-
-```
+```json
 {
   "AWS": "AKIA[0-9A-Z]{16}",
   "Slack": "xox[baprs]-[0-9a-zA-Z]{10,48}"
 }
-
 ```
 
 Each matching string will be replaced with `***MASKED-<KEY>***`.
 
 ### With a Custom Chunk Size
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Summarize:" --file notes.txt --size 5000
-
 ```
 
 ### Custom Prompt for Final Chunk
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Process chunk:" --lastprompt "Wrap up and summarize:" --file main.md
-
 ```
 
 ### Reset State and Start Over
 
-bash
-
-```
+```bash
 python chunkwrap.py --reset
-
 ```
 
 Output Format
@@ -135,7 +114,6 @@ Your prompt here (chunk 2 of 5)
 """
 [chunk content with secrets masked]
 """
-
 ```
 
 The final chunk uses `--lastprompt` (if provided) and omits the chunk counter.
