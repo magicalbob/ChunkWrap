@@ -38,21 +38,15 @@ Installation
 
 1.  Clone the repository:
 
-    bash
-
-    ```
+    ```bash
     git clone https://github.com/your/repo.git
     cd chunkwrap
-
     ```
 
 2.  Install dependencies:
 
-    bash
-
-    ```
+    ```bash
     pip install pyperclip
-
     ```
 
 3.  On first run, a default config file will be created at:
@@ -66,20 +60,14 @@ Usage
 
 ### Minimal example
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Analyze this:" --file myscript.py
-
 ```
 
 ### Multiple files
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Review each file:" --file a.py b.md
-
 ```
 
 ### Secret masking
@@ -100,47 +88,32 @@ Each match will be replaced with `***MASKED-<KEY>***`.
 
 ### Custom chunk size
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Summarize section:" --file notes.txt --size 5000
-
 ```
 
 ### Final chunk prompt
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Analyze chunk:" --lastprompt "Now summarize everything:" --file long.txt
-
 ```
 
 ### Disable prompt suffix
 
-bash
-
-```
+```bash
 python chunkwrap.py --prompt "Chunk:" --file script.py --no-suffix
-
 ```
 
 ### Show config path
 
-bash
-
-```
+```bash
 python chunkwrap.py --config-path
-
 ```
 
 ### Reset state
 
-bash
-
-```
+```bash
 python chunkwrap.py --reset
-
 ```
 
 Output Format
@@ -153,10 +126,53 @@ Your prompt (chunk 2 of 4)
 """
 [redacted content]
 """
-
 ```
 
 Final chunk omits the index and uses `--lastprompt` if provided.
+
+Configuration File
+------------------
+
+On first run, `chunkwrap` creates a configuration file at the following path:
+
+-   **Linux/macOS**: `~/.config/chunkwrap/config.json`
+
+-   **Windows**: `%APPDATA%\chunkwrap\config.json`
+
+This file allows you to customize the default behavior of the tool. You can edit it manually to override any of the options below.
+
+### Available Options
+
+```json
+{
+  "default_chunk_size": 10000,
+  "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk.",
+  "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks."
+}
+```
+
+-   **`default_chunk_size`**: *(integer)*\
+    Sets the default number of characters per chunk when `--size` is not specified on the command line.
+
+-   **`intermediate_chunk_suffix`**: *(string)*\
+    This text is appended to the `--prompt` on all intermediate (non-final) chunks unless the `--no-suffix` flag is used.
+
+-   **`final_chunk_suffix`**: *(string)*\
+    This text is appended to the `--lastprompt` (or `--prompt`, if `--lastprompt` is not used) for the final chunk. It's intended to signal to the LLM that a full, detailed response is now appropriate.
+
+### Example
+
+You might modify your config to create tighter chunking and less verbose suffixes:
+
+```json
+{
+  "default_chunk_size": 5000,
+  "intermediate_chunk_suffix": " Brief reply only, please.",
+  "final_chunk_suffix": " Full summary now."
+}
+```
+
+These values will be automatically merged with any defaults added in future releases, so missing keys will not cause errors.
 
 Roadmap
 -------
