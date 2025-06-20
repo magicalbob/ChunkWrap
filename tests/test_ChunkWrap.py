@@ -270,3 +270,42 @@ def test_config_path_flag(mock_load_config, mock_config):
             mock_print.assert_called_once()
             call_args = mock_print.call_args[0][0]
             assert "Configuration file:" in call_args
+
+def test_version_flag(capsys):
+    with patch('sys.argv', ['chunkwrap.py', '--version']):
+        with pytest.raises(SystemExit):  # argparse calls sys.exit()
+            main()
+    captured = capsys.readouterr()
+    assert "chunkwrap" in captured.out
+
+@patch('chunkwrap.chunkwrap.read_state', return_value=1)
+@patch('chunkwrap.chunkwrap.load_config')
+@patch('chunkwrap.chunkwrap.read_files')
+@patch('chunkwrap.chunkwrap.chunk_file')
+@patch('chunkwrap.chunkwrap.load_trufflehog_regexes', return_value={})
+@patch('pyperclip.copy')
+@patch('builtins.print')
+def test_final_chunk_prompt(mock_print, mock_copy, mock_regexes, mock_chunk_file, mock_read_files, mock_load_config, mock_state, mock_config):
+    mock_load_config.return_value = {**mock_config, "final_chunk_suffix": " Now do the full analysis."}
+    mock_chunk_file.return_value = ["First chunk", "Final chunk"]
+    mock_read_files.return_value = "Some content"
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Base prompt', '--lastprompt', 'Final prompt', '--file', 'file.txt']):
+        main()
+
+    expected = "Final prompt Now do the full analysis.\n\"\"\"\nFinal chunk\n\"\"\""
+    mock_copy.assert_called_with(expected)
+    mock_print.assert_any_call("That was the last chunk! Use --reset for new file or prompt.")
+
+@patch('builtins.open', new_callable=mock_open, read_data='{ bad json')
+@patch('os.path.exists', return_value=True)
+def test_trufflehog_json_parse_error(mock_exists, mock_file, capsys):
+    from chunkwrap.chunkwrap import load_config
+    config = load_config()
+    out = capsys.readouterr().out
+    assert "Warning: Could not load config file" in out
+
+def test_reset_with_other_args_errors():
+    with patch('sys.argv', ['chunkwrap.py', '--reset', '--prompt', 'Prompt']):
+        with pytest.raises(SystemExit):
+            main()
