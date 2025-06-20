@@ -69,18 +69,29 @@ def get_version():
 
 def main():
     parser = argparse.ArgumentParser(description="Split file(s) into chunks and wrap each chunk for LLM processing.")
-    parser.add_argument('--prompt', type=str, required=True, help='Prompt text for regular chunks')
-    parser.add_argument('--file', type=str, nargs='+', required=True, help='File(s) to process')
+    
+    parser.add_argument('--prompt', type=str, help='Prompt text for regular chunks')
+    parser.add_argument('--file', type=str, nargs='+', help='File(s) to process')
     parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
     parser.add_argument('--reset', action='store_true', help='Reset chunk index and start over')
     parser.add_argument('--size', type=int, default=10000, help='Chunk size (default 10,000)')
     parser.add_argument('--version', action='version', version=f'%(prog)s {get_version()}')
+    
     args = parser.parse_args()
 
     if args.reset:
+        # Ensure reset is used alone
+        if args.prompt or args.file or args.lastprompt or args.size != 10000:
+            parser.error("--reset cannot be used with other arguments")
         reset_state()
         print("State reset. Start from first chunk next run.")
         return
+
+    # Validate required arguments for normal operation
+    if not args.prompt:
+        parser.error("--prompt is required when not using --reset")
+    if not args.file:
+        parser.error("--file is required when not using --reset")
 
     # Load TruffleHog regex patterns
     regex_patterns = load_trufflehog_regexes()

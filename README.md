@@ -142,11 +142,11 @@ Roadmap
 
 1.  **Auto-prompt modification for non-final chunks**: Automatically append instructions to non-final chunks asking the LLM to reserve comprehensive responses for the final chunk. This prevents information loss when users only review the last response in a sequence.
 
-2.  **Reset investigation**: The `reset` command does not work as expected, and needs some love & attention.
+~~2.  **Reset investigation**: The `reset` command does not work as expected, and needs some love & attention.~~
 
-3.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
+2.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
 
-4.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.
+3.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.
 
 ### Future considerations
 
