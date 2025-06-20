@@ -32,7 +32,8 @@ def load_config():
     # Default configuration
     default_config = {
         "default_chunk_size": 10000,
-        "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk."
+        "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk.",
+        "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks."
     }
     
     if not config_file.exists():
@@ -195,7 +196,8 @@ def main():
     else:
         # This is the final chunk
         lastprompt = args.lastprompt if args.lastprompt else args.prompt
-        wrapper = f"{lastprompt}\n\"\"\"\n{masked_chunk}\n\"\"\""
+        final_prompt = lastprompt + config.get("final_chunk_suffix", "")
+        wrapper = f"{final_prompt}\n\"\"\"\n{masked_chunk}\n\"\"\""
 
     pyperclip.copy(wrapper)
     print(f"Chunk {idx+1} of {total_chunks} is now in the paste buffer.")
