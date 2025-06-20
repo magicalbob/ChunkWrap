@@ -7,9 +7,62 @@ import re
 import json
 import tomllib
 from importlib.metadata import version, PackageNotFoundError
+from pathlib import Path
 
 STATE_FILE = '.chunkwrap_state'
 TRUFFLEHOG_REGEX_FILE = 'truffleHogRegexes.json'  # Make sure you have this file with regex patterns
+
+def get_config_dir():
+    """Get the configuration directory following XDG Base Directory specification"""
+    if os.name == 'nt':  # Windows
+        config_dir = os.environ.get('APPDATA', os.path.expanduser('~'))
+        return Path(config_dir) / 'chunkwrap'
+    else:  # Unix-like (Linux, macOS, etc.)
+        config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+        return Path(config_dir) / 'chunkwrap'
+
+def get_config_file_path():
+    """Get the full path to the configuration file"""
+    return get_config_dir() / 'config.json'
+
+def load_config():
+    """Load configuration from file, creating default if it doesn't exist"""
+    config_file = get_config_file_path()
+    
+    # Default configuration
+    default_config = {
+        "default_chunk_size": 10000
+    }
+    
+    if not config_file.exists():
+        # Create config directory if it doesn't exist
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create default config file
+        with open(config_file, 'w') as f:
+            json.dump(default_config, f, indent=2)
+        
+        print(f"Created default configuration file at: {config_file}")
+        return default_config
+    
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        
+        # Merge with defaults in case new options were added
+        merged_config = {**default_config, **config}
+        
+        # Update config file if new defaults were added
+        if merged_config != config:
+            with open(config_file, 'w') as f:
+                json.dump(merged_config, f, indent=2)
+        
+        return merged_config
+    
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"Warning: Could not load config file {config_file}: {e}")
+        print("Using default configuration.")
+        return default_config
 
 def read_state():
     if os.path.exists(STATE_FILE):
@@ -68,20 +121,28 @@ def get_version():
         return "unknown"
 
 def main():
+    # Load configuration
+    config = load_config()
+    
     parser = argparse.ArgumentParser(description="Split file(s) into chunks and wrap each chunk for LLM processing.")
     
     parser.add_argument('--prompt', type=str, help='Prompt text for regular chunks')
     parser.add_argument('--file', type=str, nargs='+', help='File(s) to process')
     parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
     parser.add_argument('--reset', action='store_true', help='Reset chunk index and start over')
-    parser.add_argument('--size', type=int, default=10000, help='Chunk size (default 10,000)')
+    parser.add_argument('--size', type=int, default=config['default_chunk_size'], help=f'Chunk size (default: {config["default_chunk_size"]})')
+    parser.add_argument('--config-path', action='store_true', help='Show configuration file path and exit')
     parser.add_argument('--version', action='version', version=f'%(prog)s {get_version()}')
     
     args = parser.parse_args()
 
+    if args.config_path:
+        print(f"Configuration file: {get_config_file_path()}")
+        return
+
     if args.reset:
         # Ensure reset is used alone
-        if args.prompt or args.file or args.lastprompt or args.size != 10000:
+        if args.prompt or args.file or args.lastprompt or args.size != config['default_chunk_size']:
             parser.error("--reset cannot be used with other arguments")
         reset_state()
         print("State reset. Start from first chunk next run.")

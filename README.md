@@ -146,9 +146,9 @@ Roadmap
 
 2.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
 
-3.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.
+~~3.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.~~
 
-4.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
+3.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
 
 ### Future considerations
 
