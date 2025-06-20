@@ -309,3 +309,50 @@ def test_reset_with_other_args_errors():
     with patch('sys.argv', ['chunkwrap.py', '--reset', '--prompt', 'Prompt']):
         with pytest.raises(SystemExit):
             main()
+
+@patch('os.path.exists', return_value=True)
+@patch('builtins.open', side_effect=IOError("Permission denied"))
+def test_load_config_io_error(mock_open, mock_exists, capsys):
+    from chunkwrap.chunkwrap import load_config
+    config = load_config()
+    assert config['default_chunk_size'] == 10000
+    assert "Warning: Could not load config file" in capsys.readouterr().out
+
+@patch('os.path.exists', return_value=True)
+@patch('json.load', return_value={"default_chunk_size": 1000})
+@patch('builtins.open', new_callable=mock_open)
+def test_load_config_merging_defaults(mock_file, mock_json_load, mock_exists):
+    from chunkwrap.chunkwrap import load_config
+    config = load_config()
+    assert "intermediate_chunk_suffix" in config
+    assert config["default_chunk_size"] == 1000
+
+def test_missing_prompt_argument():
+    with patch('sys.argv', ['chunkwrap.py', '--file', 'foo.txt']):
+        with pytest.raises(SystemExit):
+            main()
+
+@patch('builtins.open', side_effect=PermissionError)
+def test_write_state_permission_error(mock_open):
+    # Should not raise
+    from chunkwrap.chunkwrap import write_state
+    try:
+        write_state(5)
+    except PermissionError:
+        pytest.fail("write_state() should handle permission errors gracefully.")
+
+def test_missing_file_argument():
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Prompt only']):
+        with pytest.raises(SystemExit):
+            main()
+
+def test_mask_secrets_multiple_patterns():
+    from chunkwrap.chunkwrap import mask_secrets
+    text = "AWS key: AKIA1234567890ABCDXY and Slack token: xoxb-abc1234567890"
+    regexes = {
+        "AWS": "AKIA[0-9A-Z]{16}",
+        "Slack": "xox[baprs]-[0-9a-zA-Z]{10,48}"
+    }
+    result = mask_secrets(text, regexes)
+    assert "***MASKED-AWS***" in result
+    assert "***MASKED-Slack***" in result

@@ -73,8 +73,11 @@ def read_state():
     return 0
 
 def write_state(idx):
-    with open(STATE_FILE, 'w') as f:
-        f.write(str(idx))
+    try:
+        with open(STATE_FILE, 'w') as f:
+            f.write(str(idx))
+    except IOError as e:
+        print(f"Warning: Failed to write state file: {e}")
 
 def reset_state():
     if os.path.exists(STATE_FILE):
