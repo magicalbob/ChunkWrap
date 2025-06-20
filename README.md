@@ -1,154 +1,177 @@
-PLATFORM SUPPORT AND EARLY TESTING
-----------------------------------
-
-This project aims for cross-platform, browser-based accessibility. Early testing results:
-
--   **Works as intended on:**
-
-    -   Chrome on macOS (tested on MacBook Air)
-
-    -   Chrome on Android (tested on Samsung S24 FE)
-
-    -   (Likely also works on Edge and recent Chromium-based browsers)
-
--   **Known limitation:**
-
-    -   Chrome on iPad (iOS): The "Play Welcome" button displays and the welcome text appears after clicking, but **speech synthesis does not play audio**. This appears to be a limitation of Chrome and/or Web Speech API support on iOS/iPadOS, which often blocks or fails to implement certain audio APIs for non-Safari browsers.
-
--   **Safari/iOS support:**
-
-    -   Not yet tested or prioritized. Apple's browser restrictions may block speech synthesis or speech input features in web apps.
-
-**Workaround:**\
-Users on iPad/iOS devices can still read the welcome message text and use the rest of the app, but won't hear synthesized speech until browser/OS support improves. Desktop and Android users get full audio.
-
-If you have feedback or success/failure reports for other browsers/devices, please open an issue!chunkwrap
+chunkwrap
 =========
 
-A Python utility for splitting large files into manageable chunks, masking secrets, and wrapping them with custom prompts for Large Language Model (LLM) processing.
+A Python utility for splitting large files into manageable chunks, masking secrets, and wrapping each chunk with custom prompts for Large Language Model (LLM) processing.
 
 Overview
 --------
 
-chunkwrap helps you process large files with LLMs by splitting them into smaller chunks, masking sensitive data, and wrapping each chunk with your specified prompt. It tracks your place between runs, so you can work incrementally.
+chunkwrap helps you prepare large files for LLM workflows by:
+
+-   Splitting them into smaller, prompt-ready chunks
+
+-   Redacting secrets via TruffleHog-style regexes
+
+-   Tracking progress across invocations
+
+-   Supporting clipboard-based interaction or (soon) alternate output modes
 
 Features
 --------
 
--   **Automatic chunking**: Split files into chunks of configurable size (default: 10,000 characters)
+-   **Configurable chunking**: Choose chunk size (default: 10,000 characters)
 
--   **Multi-file support**: Combine and process multiple input files seamlessly
+-   **Multi-file support**: Concatenate multiple inputs into a single stream
 
--   **Secret masking**: Use TruffleHog regex patterns to redact secrets
+-   **Secret masking**: Redact sensitive patterns using configurable regexes
 
--   **State management**: Resume where you left off using a saved chunk index
+-   **Prompt wrapping**: Use distinct prompts for intermediate and final chunks
 
--   **Clipboard integration**: Automatically copies the wrapped chunk to your clipboard
+-   **Clipboard integration**: Copy output chunk directly to your paste buffer
 
--   **Prompt flexibility**: Use different prompts for regular and final chunks
+-   **State tracking**: Progress is remembered across runs using a local `.chunkwrap_state` file
 
--   **Progress tracking**: Indicates current chunk number out of total
+-   **Optional prompt suffix**: Append boilerplate only to intermediate chunks
 
 Installation
 ------------
 
-1.  Clone this repository
+1.  Clone the repository:
 
-2.  Install required dependencies:
+    bash
 
-    ```bash
-    pip install pyperclip
     ```
+    git clone https://github.com/your/repo.git
+    cd chunkwrap
+
+    ```
+
+2.  Install dependencies:
+
+    bash
+
+    ```
+    pip install pyperclip
+
+    ```
+
+3.  On first run, a default config file will be created at:
+
+    -   Linux/macOS: `~/.config/chunkwrap/config.json`
+
+    -   Windows: `%APPDATA%\chunkwrap\config.json`
 
 Usage
 -----
 
-### Basic Usage
+### Minimal example
 
-```bash
-python chunkwrap.py --prompt "Analyze this code:" --file file1.txt
+bash
+
+```
+python chunkwrap.py --prompt "Analyze this:" --file myscript.py
+
 ```
 
-### With Multiple Files
+### Multiple files
 
-```bash
-python chunkwrap.py --prompt "Review content:" --file file1.py file2.md
+bash
+
+```
+python chunkwrap.py --prompt "Review each file:" --file a.py b.md
+
 ```
 
-### With Secret Masking
+### Secret masking
 
-Place a `truffleHogRegexes.json` file in the same directory. Example:
+Place a `truffleHogRegexes.json` file in the same directory:
 
-```json
+json
+
+```
 {
   "AWS": "AKIA[0-9A-Z]{16}",
   "Slack": "xox[baprs]-[0-9a-zA-Z]{10,48}"
 }
+
 ```
 
-Each matching string will be replaced with `***MASKED-<KEY>***`.
+Each match will be replaced with `***MASKED-<KEY>***`.
 
-### With a Custom Chunk Size
+### Custom chunk size
 
-```bash
-python chunkwrap.py --prompt "Summarize:" --file notes.txt --size 5000
+bash
+
+```
+python chunkwrap.py --prompt "Summarize section:" --file notes.txt --size 5000
+
 ```
 
-### Custom Prompt for Final Chunk
+### Final chunk prompt
 
-```bash
-python chunkwrap.py --prompt "Process chunk:" --lastprompt "Wrap up and summarize:" --file main.md
+bash
+
+```
+python chunkwrap.py --prompt "Analyze chunk:" --lastprompt "Now summarize everything:" --file long.txt
+
 ```
 
-### Reset State and Start Over
+### Disable prompt suffix
 
-```bash
+bash
+
+```
+python chunkwrap.py --prompt "Chunk:" --file script.py --no-suffix
+
+```
+
+### Show config path
+
+bash
+
+```
+python chunkwrap.py --config-path
+
+```
+
+### Reset state
+
+bash
+
+```
 python chunkwrap.py --reset
+
 ```
 
 Output Format
 -------------
 
+Each chunk is wrapped like:
+
 ```
-Your prompt here (chunk 2 of 5)
+Your prompt (chunk 2 of 4)
 """
-[chunk content with secrets masked]
+[redacted content]
 """
+
 ```
 
-The final chunk uses `--lastprompt` (if provided) and omits the chunk counter.
-
-State File
-----------
-
-A `.chunkwrap_state` file is created in the current directory to track your current chunk index. Delete this file or use `--reset` to begin again.
-
-Requirements
-------------
-
--   Python 3.11+
-
--   `pyperclip` library
-
-License
--------
-
-This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
+Final chunk omits the index and uses `--lastprompt` if provided.
 
 Roadmap
 -------
 
 ### Near-term improvements
 
-1.  **Auto-prompt modification for non-final chunks**: Automatically append instructions to non-final chunks asking the LLM to reserve comprehensive responses for the final chunk. This prevents information loss when users only review the last response in a sequence.
+~~1.  **Auto-prompt modification for non-final chunks**: Automatically append instructions to non-final chunks asking the LLM to reserve comprehensive responses for the final chunk. This prevents information loss when users only review the last response in a sequence.~~
 
 ~~2.  **Reset investigation**: The `reset` command does not work as expected, and needs some love & attention.~~
 
-2.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
+1.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
 
 ~~3.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.~~
 
-3.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
+2.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
 
 ### Future considerations
 
@@ -157,3 +180,15 @@ Roadmap
 -   **Output formats**: Support for different wrapper formats (XML tags, markdown blocks, etc.)
 -   **Parallel processing**: For very large file sets, allow processing multiple chunks simultaneously
 -   **Integration modes**: Direct API integration with popular LLM services
+
+Requirements
+------------
+
+-   Python 3.11+
+
+-   `pyperclip`
+
+License
+-------
+
+GNU General Public License v3.0 --- see LICENSE for details.
