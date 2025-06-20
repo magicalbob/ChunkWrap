@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chunkwrap"
-version = "0.6.2"
+version = "0.6.3"
 description = "A project that splits files and copies them to paste buffer with context for an LLM."
 readme = "README.md"
 authors = [
