@@ -148,6 +148,8 @@ Roadmap
 
 3.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.
 
+4.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
+
 ### Future considerations
 
 -   **Chunk overlap**: Add optional overlap between chunks to preserve context across boundaries
