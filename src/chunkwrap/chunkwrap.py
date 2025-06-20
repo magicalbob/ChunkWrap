@@ -31,7 +31,8 @@ def load_config():
     
     # Default configuration
     default_config = {
-        "default_chunk_size": 10000
+        "default_chunk_size": 10000,
+        "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk."
     }
     
     if not config_file.exists():
@@ -131,6 +132,7 @@ def main():
     parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
     parser.add_argument('--reset', action='store_true', help='Reset chunk index and start over')
     parser.add_argument('--size', type=int, default=config['default_chunk_size'], help=f'Chunk size (default: {config["default_chunk_size"]})')
+    parser.add_argument('--no-suffix', action='store_true', help='Disable automatic suffix for intermediate chunks')
     parser.add_argument('--config-path', action='store_true', help='Show configuration file path and exit')
     parser.add_argument('--version', action='version', version=f'%(prog)s {get_version()}')
     
@@ -177,10 +179,21 @@ def main():
     # Mask secrets
     masked_chunk = mask_secrets(chunk, regex_patterns)
 
+    # Build the prompt with appropriate suffix
+    base_prompt = args.prompt
+    
     # Choose wrapping for this chunk
     if idx < total_chunks - 1:
-        wrapper = f"{args.prompt} (chunk {idx+1} of {total_chunks})\n\"\"\"\n{masked_chunk}\n\"\"\""
+        # This is an intermediate chunk (not the final one)
+        if total_chunks > 1 and not args.no_suffix:
+            # Add suffix only if there are multiple chunks and suffix is enabled
+            prompt_with_suffix = base_prompt + config['intermediate_chunk_suffix']
+        else:
+            prompt_with_suffix = base_prompt
+        
+        wrapper = f"{prompt_with_suffix} (chunk {idx+1} of {total_chunks})\n\"\"\"\n{masked_chunk}\n\"\"\""
     else:
+        # This is the final chunk
         lastprompt = args.lastprompt if args.lastprompt else args.prompt
         wrapper = f"{lastprompt}\n\"\"\"\n{masked_chunk}\n\"\"\""
 
