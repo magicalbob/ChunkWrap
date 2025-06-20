@@ -134,3 +134,24 @@ License
 -------
 
 This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
+
+Roadmap
+-------
+
+### Near-term improvements
+
+1.  **Auto-prompt modification for non-final chunks**: Automatically append instructions to non-final chunks asking the LLM to reserve comprehensive responses for the final chunk. This prevents information loss when users only review the last response in a sequence.
+
+2.  **Reset investigation**: The `reset` command does not work as expected, and needs some love & attention.
+
+3.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
+
+4.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.
+
+### Future considerations
+
+-   **Chunk overlap**: Add optional overlap between chunks to preserve context across boundaries
+-   **Smart chunking**: Break at natural boundaries (sentences, paragraphs) rather than arbitrary character counts
+-   **Output formats**: Support for different wrapper formats (XML tags, markdown blocks, etc.)
+-   **Parallel processing**: For very large file sets, allow processing multiple chunks simultaneously
+-   **Integration modes**: Direct API integration with popular LLM services
