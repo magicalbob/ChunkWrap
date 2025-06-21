@@ -36,17 +36,29 @@ Features
 Installation
 ------------
 
-1.  Clone the repository:
+1.  To install from source, clone the repository:
 
     ```bash
-    git clone https://github.com/your/repo.git
+    git clone https://github.com/magicalbob/chunkwrap.git
     cd chunkwrap
     ```
 
-2.  Install dependencies:
+    Or just install from PyPI:
 
     ```bash
-    pip install pyperclip
+    pip install chunkwrap
+    ```
+
+2.  Install dependencies (if installed from source):
+
+    ```bash
+    pip install -e .
+    ```
+
+    Or for developer tools:
+
+    ```bash
+    pip install -e ".[dev]"
     ```
 
 3.  On first run, a default config file will be created at:
@@ -61,13 +73,13 @@ Usage
 ### Minimal example
 
 ```bash
-python chunkwrap.py --prompt "Analyze this:" --file myscript.py
+chunkwrap --prompt "Analyze this:" --file myscript.py
 ```
 
 ### Multiple files
 
 ```bash
-python chunkwrap.py --prompt "Review each file:" --file a.py b.md
+chunkwrap --prompt "Review each file:" --file a.py b.md
 ```
 
 ### Secret masking
@@ -89,31 +101,31 @@ Each match will be replaced with `***MASKED-<KEY>***`.
 ### Custom chunk size
 
 ```bash
-python chunkwrap.py --prompt "Summarize section:" --file notes.txt --size 5000
+chunkwrap --prompt "Summarize section:" --file notes.txt --size 5000
 ```
 
 ### Final chunk prompt
 
 ```bash
-python chunkwrap.py --prompt "Analyze chunk:" --lastprompt "Now summarize everything:" --file long.txt
+chunkwrap --prompt "Analyze chunk:" --lastprompt "Now summarize everything:" --file long.txt
 ```
 
 ### Disable prompt suffix
 
 ```bash
-python chunkwrap.py --prompt "Chunk:" --file script.py --no-suffix
+chunkwrap --prompt "Chunk:" --file script.py --no-suffix
 ```
 
 ### Show config path
 
 ```bash
-python chunkwrap.py --config-path
+chunkwrap --config-path
 ```
 
 ### Reset state
 
 ```bash
-python chunkwrap.py --reset
+chunkwrap --reset
 ```
 
 Output Format
@@ -167,8 +179,8 @@ You might modify your config to create tighter chunking and less verbose suffixe
 ```json
 {
   "default_chunk_size": 5000,
-  "intermediate_chunk_suffix": " Brief reply only, please.",
-  "final_chunk_suffix": " Full summary now."
+  "intermediate_chunk_suffix": "Brief reply only, please.",
+  "final_chunk_suffix": "Full summary now."
 }
 ```
 
@@ -179,15 +191,7 @@ Roadmap
 
 ### Near-term improvements
 
-~~1.  **Auto-prompt modification for non-final chunks**: Automatically append instructions to non-final chunks asking the LLM to reserve comprehensive responses for the final chunk. This prevents information loss when users only review the last response in a sequence.~~
-
-~~2.  **Reset investigation**: The `reset` command does not work as expected, and needs some love & attention.~~
-
-1.  **Configurable prompt suffixes**: Add support for automatically appending standard instructions to all prompts (e.g., "Use concise responses for intermediate chunks").
-
-~~3.  **External configuration management**: Move configuration options to `~/.config/chunkwrap.json` with CLI commands for managing settings.~~
-
-2.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
+1.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
 
 ### Future considerations
 
