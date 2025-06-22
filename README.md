@@ -190,6 +190,7 @@ Roadmap
 ### Near-term improvements
 
 1.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
+> initial implementation of --output and --output-file done. Further improvements, like configuraion in ~/.config/chunkwrap/config.json, required
 
 ### Future considerations
 
