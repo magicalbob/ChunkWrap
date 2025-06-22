@@ -9,28 +9,20 @@ Overview
 chunkwrap helps you prepare large files for LLM workflows by:
 
 -   Splitting them into smaller, prompt-ready chunks
-
 -   Redacting secrets via TruffleHog-style regexes
-
 -   Tracking progress across invocations
-
--   Supporting clipboard-based interaction or (soon) alternate output modes
+-   Supporting multiple output modes: clipboard, stdout, or file
 
 Features
 --------
 
 -   **Configurable chunking**: Choose chunk size (default: 10,000 characters)
-
 -   **Multi-file support**: Concatenate multiple inputs into a single stream
-
 -   **Secret masking**: Redact sensitive patterns using configurable regexes
-
 -   **Prompt wrapping**: Use distinct prompts for intermediate and final chunks
-
 -   **Clipboard integration**: Copy output chunk directly to your paste buffer
-
+-   **Output flexibility**: Send wrapped output to stdout or a file
 -   **State tracking**: Progress is remembered across runs using a local `.chunkwrap_state` file
-
 -   **Optional prompt suffix**: Append boilerplate only to intermediate chunks
 
 Installation
@@ -64,7 +56,6 @@ Installation
 3.  On first run, a default config file will be created at:
 
     -   Linux/macOS: `~/.config/chunkwrap/config.json`
-
     -   Windows: `%APPDATA%\chunkwrap\config.json`
 
 Usage
@@ -86,14 +77,11 @@ chunkwrap --prompt "Review each file:" --file a.py b.md
 
 Place a `truffleHogRegexes.json` file in the same directory:
 
-json
-
-```
+```json
 {
   "AWS": "AKIA[0-9A-Z]{16}",
   "Slack": "xox[baprs]-[0-9a-zA-Z]{10,48}"
 }
-
 ```
 
 Each match will be replaced with `***MASKED-<KEY>***`.
@@ -128,6 +116,17 @@ chunkwrap --config-path
 chunkwrap --reset
 ```
 
+### Output options
+
+```bash
+chunkwrap --prompt "Analyze:" --file myfile.txt --output stdout
+chunkwrap --prompt "Analyze:" --file myfile.txt --output file --output-file output.txt
+```
+
+- `--output clipboard` (default): copy the output chunk to the clipboard
+- `--output stdout`: print the output chunk to standard output
+- `--output file`: write the output chunk to the file specified by `--output-file`
+
 Output Format
 -------------
 
@@ -148,7 +147,6 @@ Configuration File
 On first run, `chunkwrap` creates a configuration file at the following path:
 
 -   **Linux/macOS**: `~/.config/chunkwrap/config.json`
-
 -   **Windows**: `%APPDATA%\chunkwrap\config.json`
 
 This file allows you to customize the default behavior of the tool. You can edit it manually to override any of the options below.
@@ -205,7 +203,6 @@ Requirements
 ------------
 
 -   Python 3.11+
-
 -   `pyperclip`
 
 License
