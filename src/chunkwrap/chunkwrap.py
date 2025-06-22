@@ -128,9 +128,9 @@ def get_version():
 def main():
     # Load configuration
     config = load_config()
-    
+
     parser = argparse.ArgumentParser(description="Split file(s) into chunks and wrap each chunk for LLM processing.")
-    
+
     parser.add_argument('--prompt', type=str, help='Prompt text for regular chunks')
     parser.add_argument('--file', type=str, nargs='+', help='File(s) to process')
     parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
@@ -139,7 +139,9 @@ def main():
     parser.add_argument('--no-suffix', action='store_true', help='Disable automatic suffix for intermediate chunks')
     parser.add_argument('--config-path', action='store_true', help='Show configuration file path and exit')
     parser.add_argument('--version', action='version', version=f'%(prog)s {get_version()}')
-    
+    parser.add_argument('--output', choices=['clipboard', 'stdout', 'file'], default='clipboard', help='Where to send the output (default: clipboard)')
+    parser.add_argument('--output-file', type=str, help='Output file name (used if --output file)')
+
     args = parser.parse_args()
 
     if args.config_path:
@@ -147,25 +149,22 @@ def main():
         return
 
     if args.reset:
-        # Ensure reset is used alone
         if args.prompt or args.file or args.lastprompt or args.size != config['default_chunk_size']:
             parser.error("--reset cannot be used with other arguments")
         reset_state()
         print("State reset. Start from first chunk next run.")
         return
 
-    # Validate required arguments for normal operation
     if not args.prompt:
         parser.error("--prompt is required when not using --reset")
     if not args.file:
         parser.error("--file is required when not using --reset")
+    if args.output == 'file' and not args.output_file:
+        parser.error("--output-file must be specified when using --output file")
 
-    # Load TruffleHog regex patterns
     regex_patterns = load_trufflehog_regexes()
-
-    # Read all files and combine content
     content = read_files(args.file)
-    
+
     if not content.strip():
         print("No content found in any of the specified files.")
         return
@@ -179,31 +178,35 @@ def main():
         return
 
     chunk = chunks[idx]
-
-    # Mask secrets
     masked_chunk = mask_secrets(chunk, regex_patterns)
 
-    # Build the prompt with appropriate suffix
     base_prompt = args.prompt
-    
-    # Choose wrapping for this chunk
+
     if idx < total_chunks - 1:
-        # This is an intermediate chunk (not the final one)
         if total_chunks > 1 and not args.no_suffix:
-            # Add suffix only if there are multiple chunks and suffix is enabled
             prompt_with_suffix = base_prompt + config['intermediate_chunk_suffix']
         else:
             prompt_with_suffix = base_prompt
-        
         wrapper = f"{prompt_with_suffix} (chunk {idx+1} of {total_chunks})\n\"\"\"\n{masked_chunk}\n\"\"\""
     else:
-        # This is the final chunk
         lastprompt = args.lastprompt if args.lastprompt else args.prompt
         final_prompt = lastprompt + config.get("final_chunk_suffix", "")
         wrapper = f"{final_prompt}\n\"\"\"\n{masked_chunk}\n\"\"\""
 
-    pyperclip.copy(wrapper)
-    print(f"Chunk {idx+1} of {total_chunks} is now in the paste buffer.")
+    if args.output == 'clipboard':
+        pyperclip.copy(wrapper)
+        print(f"Chunk {idx+1} of {total_chunks} is now in the paste buffer.")
+    elif args.output == 'stdout':
+        print(wrapper)
+    elif args.output == 'file':
+        try:
+            with open(args.output_file, 'w', encoding='utf-8') as f:
+                f.write(wrapper)
+            print(f"Chunk {idx+1} of {total_chunks} written to {args.output_file}.")
+        except Exception as e:
+            print(f"Error writing to file: {e}")
+            return
+
     if len(args.file) > 1:
         print(f"Processing {len(args.file)} files: {', '.join(args.file)}")
     if idx < total_chunks - 1:
