@@ -128,18 +128,17 @@ def test_read_files_nonexistent():
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
-def test_main_multiple_chunks(mock_print, mock_isfile, mock_exists, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
+def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config to return default values
     mock_load_config.return_value = mock_config
     
     # Mock read_files to return content that will create 2 chunks when split at size 50
-    mock_content = 'A' * 100
-    with patch('builtins.open', mock_open(read_data=mock_content)):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
-            main()
+    mock_read_files.return_value = 'A' * 100
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
+        main()
 
     expected_wrapper = 'Test prompt Please provide only a brief acknowledgment that you\'ve received this chunk. Save your detailed analysis for the final chunk. (chunk 1 of 2)\n"""\n' + 'A' * 50 + '\n"""'
     mock_copy.assert_called_with(expected_wrapper)
@@ -149,17 +148,16 @@ def test_main_multiple_chunks(mock_print, mock_isfile, mock_exists, mock_copy, m
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
-def test_main_single_chunk_no_counter(mock_print, mock_isfile, mock_exists, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
+def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config
     mock_load_config.return_value = mock_config
     
-    mock_content = 'Short'
-    with patch('builtins.open', mock_open(read_data=mock_content)):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10']):
-            main()
+    mock_read_files.return_value = 'Short'
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10']):
+        main()
 
     # Single chunk should NOT have suffix applied
     expected_wrapper = 'Test prompt\n"""\nShort\n"""'
@@ -168,17 +166,16 @@ def test_main_single_chunk_no_counter(mock_print, mock_isfile, mock_exists, mock
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
-def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_isfile, mock_exists, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
+def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that --no-suffix flag disables the automatic suffix"""
     mock_load_config.return_value = mock_config
     
-    mock_content = 'A' * 100
-    with patch('builtins.open', mock_open(read_data=mock_content)):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50', '--no-suffix']):
-            main()
+    mock_read_files.return_value = 'A' * 100
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50', '--no-suffix']):
+        main()
 
     # With --no-suffix, should not include the suffix
     expected_wrapper = 'Test prompt (chunk 1 of 2)\n"""\n' + 'A' * 50 + '\n"""'
@@ -191,34 +188,33 @@ def test_state_file_persistence(setup_state_file):
     assert read_state() == 10
 
 @patch('chunkwrap.config.load_config')
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
-def test_main_no_content_found(mock_print, mock_isfile, mock_exists, mock_load_config, mock_config):
+def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mock_config):
     """Test behavior when no content is found in files"""
     mock_load_config.return_value = mock_config
     
     # Mock empty file content
-    with patch('builtins.open', mock_open(read_data='')):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt']):
-            main()
+    mock_read_files.return_value = ''
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt']):
+        main()
     
     mock_print.assert_called_with("No content found in any of the specified files.")
 
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
-def test_main_multiple_files_info(mock_print, mock_isfile, mock_exists, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
+def test_main_multiple_files_info(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that multiple file processing shows file info"""
     mock_load_config.return_value = mock_config
     
-    mock_content = 'Short content'
-    with patch('builtins.open', mock_open(read_data=mock_content)):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'file1.txt', 'file2.txt']):
-            main()
+    mock_read_files.return_value = 'Short content'
+    
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'file1.txt', 'file2.txt']):
+        main()
     
     mock_print.assert_any_call("Processing 2 files: file1.txt, file2.txt")
 
@@ -259,16 +255,14 @@ def test_get_version_fallback(mock_version):
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.state.read_state', return_value=5)
 @patch('chunkwrap.chunking.chunk_file', return_value=['chunk1', 'chunk2', 'chunk3', 'chunk4', 'chunk5'])
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files', return_value="some data")
 @patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
 @patch('builtins.print')
-def test_main_all_chunks_processed(mock_print, mock_regexes, mock_isfile, mock_exists, mock_chunks, mock_state, mock_load_config, mock_config):
+def test_main_all_chunks_processed(mock_print, mock_regexes, mock_read_files, mock_chunks, mock_state, mock_load_config, mock_config):
     mock_load_config.return_value = mock_config
     
-    with patch('builtins.open', mock_open(read_data="some data")):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Prompt', '--file', 'file.txt']):
-            main()
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Prompt', '--file', 'file.txt']):
+        main()
     mock_print.assert_any_call("All chunks processed! Use --reset to start over.")
 
 @patch('chunkwrap.config.load_config')
@@ -294,18 +288,16 @@ def test_version_flag(capsys):
 @patch('chunkwrap.state.read_state', return_value=1)
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('os.path.exists', return_value=True)
-@patch('os.path.isfile', return_value=True)
+@patch('chunkwrap.file_handler.read_files', return_value="Some content")
 @patch('chunkwrap.chunking.chunk_file')
 @patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
 @patch('builtins.print')
-def test_final_chunk_prompt(mock_print, mock_regexes, mock_chunk_file, mock_isfile, mock_exists, mock_copy, mock_load_config, mock_state, mock_config):
+def test_final_chunk_prompt(mock_print, mock_regexes, mock_chunk_file, mock_read_files, mock_copy, mock_load_config, mock_state, mock_config):
     mock_load_config.return_value = {**mock_config, "final_chunk_suffix": " Now do the full analysis."}
     mock_chunk_file.return_value = ["First chunk", "Final chunk"]
     
-    with patch('builtins.open', mock_open(read_data="Some content")):
-        with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Base prompt', '--lastprompt', 'Final prompt', '--file', 'file.txt']):
-            main()
+    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Base prompt', '--lastprompt', 'Final prompt', '--file', 'file.txt']):
+        main()
 
     expected = "Final prompt Now do the full analysis.\n\"\"\"\nFinal chunk\n\"\"\""
     mock_copy.assert_called_with(expected)
