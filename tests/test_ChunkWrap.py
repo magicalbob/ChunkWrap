@@ -128,7 +128,7 @@ def test_read_files_nonexistent():
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.file_handler.read_files')
+@patch('chunkwrap.core.read_files')
 @patch('builtins.print')
 def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config to return default values
@@ -148,7 +148,7 @@ def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.file_handler.read_files')
+@patch('chunkwrap.core.read_files')
 @patch('builtins.print')
 def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config
@@ -166,7 +166,7 @@ def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mo
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.file_handler.read_files')
+@patch('chunkwrap.core.read_files')
 @patch('builtins.print')
 def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that --no-suffix flag disables the automatic suffix"""
@@ -188,7 +188,7 @@ def test_state_file_persistence(setup_state_file):
     assert read_state() == 10
 
 @patch('chunkwrap.config.load_config')
-@patch('chunkwrap.file_handler.read_files')
+@patch('chunkwrap.core.read_files')
 @patch('builtins.print')
 def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mock_config):
     """Test behavior when no content is found in files"""
@@ -205,7 +205,7 @@ def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mo
 @patch('chunkwrap.utils.get_version', return_value="test")
 @patch('chunkwrap.config.load_config')
 @patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.file_handler.read_files')
+@patch('chunkwrap.core.read_files')
 @patch('builtins.print')
 def test_main_multiple_files_info(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that multiple file processing shows file info"""
