@@ -38,7 +38,7 @@ def mock_config():
     return {
         "default_chunk_size": 10000,
         "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk.",
-        "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks."
+        "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks. Give your response completely in JSON."
     }
 
 def test_read_state_initial(setup_state_file):
@@ -161,7 +161,7 @@ def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mo
         main()
 
     # Single chunk should get the final suffix applied
-    expected_wrapper = 'Test promptPlease now provide your full, considered response to all previous chunks.\n"""\nShort\n"""'
+    expected_wrapper = 'Test promptPlease now provide your full, considered response to all previous chunks. Give your response completely in JSON.\n"""\nShort\n"""'
     mock_copy.assert_called_with(expected_wrapper)
 
 @patch('chunkwrap.utils.get_version', return_value="test")
@@ -254,7 +254,7 @@ def test_get_version_fallback(mock_version):
     assert get_version() == "unknown"
 
 @patch('chunkwrap.config.load_config')
-@patch('chunkwrap.state.read_state', return_value=5)  # 5 >= 5 means all processed
+@patch('chunkwrap.state.read_state', return_value=6)  # 6 > 5 means all processed
 @patch('chunkwrap.chunking.chunk_file', return_value=['chunk1', 'chunk2', 'chunk3', 'chunk4', 'chunk5'])
 @patch('chunkwrap.core.read_files', return_value="some data")
 @patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
@@ -300,7 +300,7 @@ def test_final_chunk_prompt(mock_print, mock_regexes, mock_chunk_file, mock_read
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Base prompt', '--lastprompt', 'Final prompt', '--file', 'file.txt']):
         main()
 
-    expected = "Final promptPlease now provide your full, considered response to all previous chunks. Now do the full analysis.\n\"\"\"\nFinal chunk\n\"\"\""
+    expected = "Final promptPlease now provide your full, considered response to all previous chunks. Give your response completely in JSON. Now do the full analysis.\n\"\"\"\nFinal chunk\n\"\"\""
     mock_copy.assert_called_with(expected)
     mock_print.assert_any_call("That was the last chunk! Use --reset for new file or prompt.")
 
