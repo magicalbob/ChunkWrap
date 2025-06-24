@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chunkwrap"
-version = "1.2.0"
+version = "2.0.0"
 description = "A project that splits files and copies them to paste buffer with context for an LLM."
 readme = "README.md"
 authors = [
@@ -34,7 +34,7 @@ Homepage = "https://github.com/magicalbob/chunkwrap/wiki"
 Repository = "https://github.com/magicalbob/chunkwrap"
 
 [project.scripts]
-chunkwrap = "chunkwrap.chunkwrap:main"
+chunkwrap = "chunkwrap.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
