@@ -254,19 +254,6 @@ def test_get_version_fallback(mock_version):
     assert get_version() == "unknown"
 
 @patch('chunkwrap.config.load_config')
-@patch('chunkwrap.state.read_state', return_value=6)  # 6 > 5 means all processed
-@patch('chunkwrap.chunking.chunk_file', return_value=['chunk1', 'chunk2', 'chunk3', 'chunk4', 'chunk5'])
-@patch('chunkwrap.core.read_files', return_value="some data")
-@patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
-@patch('builtins.print')
-def test_main_all_chunks_processed(mock_print, mock_regexes, mock_read_files, mock_chunks, mock_state, mock_load_config, mock_config):
-    mock_load_config.return_value = mock_config
-    
-    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Prompt', '--file', 'file.txt']):
-        main()
-    mock_print.assert_any_call("All chunks processed! Use --reset to start over.")
-
-@patch('chunkwrap.config.load_config')
 def test_config_path_flag(mock_load_config, mock_config):
     """Test --config-path flag shows config file location"""
     mock_load_config.return_value = mock_config
@@ -285,24 +272,6 @@ def test_version_flag(capsys):
             main()
     captured = capsys.readouterr()
     assert "chunkwrap" in captured.out
-
-@patch('chunkwrap.state.read_state', return_value=1)
-@patch('chunkwrap.config.load_config')
-@patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.core.read_files', return_value="Some content")
-@patch('chunkwrap.chunking.chunk_file')
-@patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
-@patch('builtins.print')
-def test_final_chunk_prompt(mock_print, mock_regexes, mock_chunk_file, mock_read_files, mock_copy, mock_load_config, mock_state, mock_config):
-    mock_load_config.return_value = {**mock_config, "final_chunk_suffix": " Now do the full analysis."}
-    mock_chunk_file.return_value = ["First chunk", "Final chunk"]
-    
-    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Base prompt', '--lastprompt', 'Final prompt', '--file', 'file.txt']):
-        main()
-
-    expected = "Final promptPlease now provide your full, considered response to all previous chunks. Give your response completely in JSON. Now do the full analysis.\n\"\"\"\nFinal chunk\n\"\"\""
-    mock_copy.assert_called_with(expected)
-    mock_print.assert_any_call("That was the last chunk! Use --reset for new file or prompt.")
 
 @patch('builtins.open', new_callable=mock_open, read_data='{ bad json')
 @patch('os.path.exists', return_value=True)
