@@ -8,7 +8,14 @@ from importlib.metadata import PackageNotFoundError
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from chunkwrap.chunkwrap import read_state, write_state, reset_state, chunk_file, read_files, main
+# Updated imports for modular structure
+from chunkwrap.state import read_state, write_state, reset_state
+from chunkwrap.chunking import chunk_file
+from chunkwrap.file_handler import read_files
+from chunkwrap.cli import main
+from chunkwrap.config import load_config
+from chunkwrap.utils import get_version
+from chunkwrap.security import load_trufflehog_regexes, mask_secrets
 
 STATE_FILE = '.chunkwrap_state'
 
@@ -116,10 +123,10 @@ def test_read_files_nonexistent():
             assert result == ''
             mock_print.assert_called_with("Warning: File 'nonexistent.txt' not found, skipping...")
 
-@patch('chunkwrap.chunkwrap.get_version', return_value="test")
-@patch('chunkwrap.chunkwrap.load_config')
+@patch('chunkwrap.utils.get_version', return_value="test")
+@patch('chunkwrap.config.load_config')
 @patch('pyperclip.copy')
-@patch('chunkwrap.chunkwrap.read_files')
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
 def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config to return default values
@@ -136,10 +143,10 @@ def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_
     mock_print.assert_any_call("Chunk 1 of 2 is now in the paste buffer.")
     mock_print.assert_any_call("Run this script again for the next chunk.")
 
-@patch('chunkwrap.chunkwrap.get_version', return_value="test")
-@patch('chunkwrap.chunkwrap.load_config')
+@patch('chunkwrap.utils.get_version', return_value="test")
+@patch('chunkwrap.config.load_config')
 @patch('pyperclip.copy')
-@patch('chunkwrap.chunkwrap.read_files')
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
 def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config
@@ -154,10 +161,10 @@ def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mo
     expected_wrapper = 'Test prompt\n"""\nShort\n"""'
     mock_copy.assert_called_with(expected_wrapper)
 
-@patch('chunkwrap.chunkwrap.get_version', return_value="test")
-@patch('chunkwrap.chunkwrap.load_config')
+@patch('chunkwrap.utils.get_version', return_value="test")
+@patch('chunkwrap.config.load_config')
 @patch('pyperclip.copy')
-@patch('chunkwrap.chunkwrap.read_files')
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
 def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that --no-suffix flag disables the automatic suffix"""
@@ -178,8 +185,8 @@ def test_state_file_persistence(setup_state_file):
     write_state(10)
     assert read_state() == 10
 
-@patch('chunkwrap.chunkwrap.load_config')
-@patch('chunkwrap.chunkwrap.read_files')
+@patch('chunkwrap.config.load_config')
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
 def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mock_config):
     """Test behavior when no content is found in files"""
@@ -191,10 +198,10 @@ def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mo
     
     mock_print.assert_called_with("No content found in any of the specified files.")
 
-@patch('chunkwrap.chunkwrap.get_version', return_value="test")
-@patch('chunkwrap.chunkwrap.load_config')
+@patch('chunkwrap.utils.get_version', return_value="test")
+@patch('chunkwrap.config.load_config')
 @patch('pyperclip.copy')
-@patch('chunkwrap.chunkwrap.read_files')
+@patch('chunkwrap.file_handler.read_files')
 @patch('builtins.print')
 def test_main_multiple_files_info(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that multiple file processing shows file info"""
@@ -222,43 +229,38 @@ def test_chunk_file_various_sizes():
 @patch('os.path.exists', return_value=True)
 @patch('builtins.open', new_callable=mock_open, read_data='{"API":"API_KEY_[0-9]+"}')
 def test_load_trufflehog_regexes_exists(mock_file, mock_exists):
-    from chunkwrap.chunkwrap import load_trufflehog_regexes
     result = load_trufflehog_regexes()
     assert "API" in result
     assert result["API"] == "API_KEY_[0-9]+"
 
 @patch('os.path.exists', return_value=False)
 def test_load_trufflehog_regexes_missing(mock_exists):
-    from chunkwrap.chunkwrap import load_trufflehog_regexes
     assert load_trufflehog_regexes() == {}
 
 def test_mask_secrets_basic():
-    from chunkwrap.chunkwrap import mask_secrets
     text = "API key: API_KEY_12345"
     regexes = {"API": "API_KEY_\\d+"}
     result = mask_secrets(text, regexes)
     assert "***MASKED-API***" in result
 
-@patch('chunkwrap.chunkwrap.version', side_effect=PackageNotFoundError)
+@patch('chunkwrap.utils.version', side_effect=PackageNotFoundError)
 def test_get_version_fallback(mock_version):
-    from chunkwrap.chunkwrap import get_version
     assert get_version() == "unknown"
 
-@patch('chunkwrap.chunkwrap.load_config')
-@patch('chunkwrap.chunkwrap.read_state', return_value=5)
-@patch('chunkwrap.chunkwrap.chunk_file', return_value=['chunk1', 'chunk2', 'chunk3', 'chunk4', 'chunk5'])
-@patch('chunkwrap.chunkwrap.read_files', return_value="some data")
-@patch('chunkwrap.chunkwrap.load_trufflehog_regexes', return_value={})
+@patch('chunkwrap.config.load_config')
+@patch('chunkwrap.state.read_state', return_value=5)
+@patch('chunkwrap.chunking.chunk_file', return_value=['chunk1', 'chunk2', 'chunk3', 'chunk4', 'chunk5'])
+@patch('chunkwrap.file_handler.read_files', return_value="some data")
+@patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
 @patch('builtins.print')
 def test_main_all_chunks_processed(mock_print, mock_regexes, mock_read_files, mock_chunks, mock_state, mock_load_config, mock_config):
     mock_load_config.return_value = mock_config
     
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Prompt', '--file', 'file.txt']):
-        from chunkwrap.chunkwrap import main
         main()
     mock_print.assert_any_call("All chunks processed! Use --reset to start over.")
 
-@patch('chunkwrap.chunkwrap.load_config')
+@patch('chunkwrap.config.load_config')
 def test_config_path_flag(mock_load_config, mock_config):
     """Test --config-path flag shows config file location"""
     mock_load_config.return_value = mock_config
@@ -278,11 +280,11 @@ def test_version_flag(capsys):
     captured = capsys.readouterr()
     assert "chunkwrap" in captured.out
 
-@patch('chunkwrap.chunkwrap.read_state', return_value=1)
-@patch('chunkwrap.chunkwrap.load_config')
-@patch('chunkwrap.chunkwrap.read_files')
-@patch('chunkwrap.chunkwrap.chunk_file')
-@patch('chunkwrap.chunkwrap.load_trufflehog_regexes', return_value={})
+@patch('chunkwrap.state.read_state', return_value=1)
+@patch('chunkwrap.config.load_config')
+@patch('chunkwrap.file_handler.read_files')
+@patch('chunkwrap.chunking.chunk_file')
+@patch('chunkwrap.security.load_trufflehog_regexes', return_value={})
 @patch('pyperclip.copy')
 @patch('builtins.print')
 def test_final_chunk_prompt(mock_print, mock_copy, mock_regexes, mock_chunk_file, mock_read_files, mock_load_config, mock_state, mock_config):
@@ -300,7 +302,6 @@ def test_final_chunk_prompt(mock_print, mock_copy, mock_regexes, mock_chunk_file
 @patch('builtins.open', new_callable=mock_open, read_data='{ bad json')
 @patch('os.path.exists', return_value=True)
 def test_trufflehog_json_parse_error(mock_exists, mock_file, capsys):
-    from chunkwrap.chunkwrap import load_config
     config = load_config()
     out = capsys.readouterr().out
     assert "Warning: Could not load config file" in out
@@ -313,7 +314,6 @@ def test_reset_with_other_args_errors():
 @patch('os.path.exists', return_value=True)
 @patch('builtins.open', side_effect=IOError("Permission denied"))
 def test_load_config_io_error(mock_open, mock_exists, capsys):
-    from chunkwrap.chunkwrap import load_config
     config = load_config()
     assert config['default_chunk_size'] == 10000
     assert "Warning: Could not load config file" in capsys.readouterr().out
@@ -322,7 +322,6 @@ def test_load_config_io_error(mock_open, mock_exists, capsys):
 @patch('json.load', return_value={"default_chunk_size": 1000})
 @patch('builtins.open', new_callable=mock_open)
 def test_load_config_merging_defaults(mock_file, mock_json_load, mock_exists):
-    from chunkwrap.chunkwrap import load_config
     config = load_config()
     assert "intermediate_chunk_suffix" in config
     assert config["default_chunk_size"] == 1000
@@ -335,7 +334,6 @@ def test_missing_prompt_argument():
 @patch('builtins.open', side_effect=PermissionError)
 def test_write_state_permission_error(mock_open):
     # Should not raise
-    from chunkwrap.chunkwrap import write_state
     try:
         write_state(5)
     except PermissionError:
@@ -347,7 +345,6 @@ def test_missing_file_argument():
             main()
 
 def test_mask_secrets_multiple_patterns():
-    from chunkwrap.chunkwrap import mask_secrets
     text = "AWS key: AKIA1234567890ABCDXY and Slack token: xoxb-abc1234567890"
     regexes = {
         "AWS": "AKIA[0-9A-Z]{16}",
