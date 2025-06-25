@@ -157,7 +157,9 @@ This file allows you to customize the default behavior of the tool. You can edit
 {
   "default_chunk_size": 10000,
   "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk.",
-  "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks."
+  "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks.",
+  "output": "clipboard",
+  "output_file": null
 }
 ```
 
@@ -169,6 +171,12 @@ This file allows you to customize the default behavior of the tool. You can edit
 
 -   **`final_chunk_suffix`**: *(string)*\
     This text is appended to the `--lastprompt` (or `--prompt`, if `--lastprompt` is not used) for the final chunk. It's intended to signal to the LLM that a full, detailed response is now appropriate.
+
+-   **`output`**: *(string: clipboard, stdout, file)*\
+    Default output destination for processed chunks. Can be overridden via --output.
+
+-   **`output_file`**: *(string or null)*\
+    File path used when output is set to "file". Can be overridden via --output-file.
 
 ### Example
 
@@ -186,11 +194,6 @@ These values will be automatically merged with any defaults added in future rele
 
 Roadmap
 -------
-
-### Near-term improvements
-
-1.  **Make cross platform**: local usage on Mac is good. My test machine is via ssh to a linux machine. The current code does not support this. Consider adding optional argument `chunkwrap [--output {clipboard|stdout|file}]` to handle this situation.
-> initial implementation of --output and --output-file done. Further improvements, like configuraion in ~/.config/chunkwrap/config.json, required
 
 ### Future considerations
 
