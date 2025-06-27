@@ -1,7 +1,7 @@
 chunkwrap
 =========
 
-A Python utility for splitting large files into manageable chunks, masking secrets, and wrapping each chunk with custom prompts for Large Language Model (LLM) processing.
+LLM workflow utility: split large files into chunks with secret masking, state tracking, and custom prompts. Perfect for code review, documentation analysis, and web-only AI access.
 
 Overview
 --------
