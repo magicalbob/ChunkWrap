@@ -41,6 +41,9 @@ Installation
     pip install chunkwrap
     ```
 
+> ✅ Tested on Python 3.11+ across macOS, Linux, and Windows 11 (in UTM on ARM64).  
+> 🧪 Windows x86 feedback welcome — if you've used it successfully, please let me know!
+
 2.  Install dependencies (if installed from source):
 
     ```bash
