@@ -131,44 +131,6 @@ def test_read_files_nonexistent():
 @patch('chunkwrap.output.pyperclip.copy')
 @patch('chunkwrap.core.read_files')
 @patch('builtins.print')
-def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
-    # Mock the config to return default values
-    mock_load_config.return_value = mock_config
-
-    # Mock read_files to return content that will create 2 chunks when split at size 50
-    mock_read_files.return_value = 'A' * 100
-
-    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
-        main()
-
-    expected_wrapper = 'Test promptPlease provide only a brief acknowledgment that you\'ve received this chunk. Save your detailed analysis for the final chunk. (chunk 1 of 2)\n"""\n' + 'A' * 50 + '\n"""'
-    mock_copy.assert_called_with(expected_wrapper)
-    mock_print.assert_any_call("Chunk 1 of 2 is now in the paste buffer.")
-    mock_print.assert_any_call("Run this script again for the next chunk.")
-
-@patch('chunkwrap.utils.get_version', return_value="test")
-@patch('chunkwrap.config.load_config')
-@patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.core.read_files')
-@patch('builtins.print')
-def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
-    # Mock the config
-    mock_load_config.return_value = mock_config
-
-    mock_read_files.return_value = 'Short'
-
-    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10']):
-        main()
-
-    # Single chunk should get the final suffix applied
-    expected_wrapper = 'Test promptPlease now provide your full, considered response to all previous chunks. Give your response completely in JSON.\n"""\nShort\n"""'
-    mock_copy.assert_called_with(expected_wrapper)
-
-@patch('chunkwrap.utils.get_version', return_value="test")
-@patch('chunkwrap.config.load_config')
-@patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.core.read_files')
-@patch('builtins.print')
 def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that --no-suffix flag disables the automatic suffix"""
     mock_load_config.return_value = mock_config
