@@ -26,12 +26,12 @@ def create_file_header(file_path):
 def read_files(file_paths):
     """Read multiple files and concatenate their content with file separators."""
     valid_paths = validate_file_paths(file_paths)
-    
+
     if not valid_paths:
         return ""
-    
+
     combined_content = []
-    
+
     for file_path in valid_paths:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -42,5 +42,5 @@ def read_files(file_paths):
         except Exception as e:
             print(f"Error reading file '{file_path}': {e}")
             continue
-    
+
     return '\n'.join(combined_content)

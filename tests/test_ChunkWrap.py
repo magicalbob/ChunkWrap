@@ -92,7 +92,7 @@ def test_clipboard_copy(mocker):
 def test_read_files():
     """Test the new read_files function with mocked file operations"""
     mock_content = "Test file content"
-    
+
     with patch('os.path.exists', return_value=True):
         with patch('os.path.isfile', return_value=True):
             with patch('builtins.open', mock_open(read_data=mock_content)):
@@ -108,7 +108,7 @@ def test_read_files_multiple():
             'file2.txt': 'Content 2'
         }
         return mock_open(read_data=content_map.get(filename, ''))()
-    
+
     with patch('os.path.exists', return_value=True):
         with patch('os.path.isfile', return_value=True):
             with patch('builtins.open', side_effect=mock_open_multiple):
@@ -134,10 +134,10 @@ def test_read_files_nonexistent():
 def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config to return default values
     mock_load_config.return_value = mock_config
-    
+
     # Mock read_files to return content that will create 2 chunks when split at size 50
     mock_read_files.return_value = 'A' * 100
-    
+
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50']):
         main()
 
@@ -154,9 +154,9 @@ def test_main_multiple_chunks(mock_print, mock_read_files, mock_copy, mock_load_
 def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     # Mock the config
     mock_load_config.return_value = mock_config
-    
+
     mock_read_files.return_value = 'Short'
-    
+
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '10']):
         main()
 
@@ -172,9 +172,9 @@ def test_main_single_chunk_no_counter(mock_print, mock_read_files, mock_copy, mo
 def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that --no-suffix flag disables the automatic suffix"""
     mock_load_config.return_value = mock_config
-    
+
     mock_read_files.return_value = 'A' * 100
-    
+
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50', '--no-suffix']):
         main()
 
@@ -194,13 +194,13 @@ def test_state_file_persistence(setup_state_file):
 def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mock_config):
     """Test behavior when no content is found in files"""
     mock_load_config.return_value = mock_config
-    
+
     # Mock empty file content
     mock_read_files.return_value = ''
-    
+
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'nonexistent.txt']):
         main()
-    
+
     mock_print.assert_called_with("No content found in any of the specified files.")
 
 @patch('chunkwrap.utils.get_version', return_value="test")
@@ -211,12 +211,12 @@ def test_main_no_content_found(mock_print, mock_read_files, mock_load_config, mo
 def test_main_multiple_files_info(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
     """Test that multiple file processing shows file info"""
     mock_load_config.return_value = mock_config
-    
+
     mock_read_files.return_value = 'Short content'
-    
+
     with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'file1.txt', 'file2.txt']):
         main()
-    
+
     mock_print.assert_any_call("Processing 2 files: file1.txt, file2.txt")
 
 def test_chunk_file_various_sizes():
@@ -257,7 +257,7 @@ def test_get_version_fallback(mock_version):
 def test_config_path_flag(mock_load_config, mock_config):
     """Test --config-path flag shows config file location"""
     mock_load_config.return_value = mock_config
-    
+
     with patch('sys.argv', ['chunkwrap.py', '--config-path']):
         with patch('builtins.print') as mock_print:
             main()

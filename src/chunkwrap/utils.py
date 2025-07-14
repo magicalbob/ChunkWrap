@@ -14,7 +14,7 @@ def get_version():
 def validate_encoding(file_path):
     """
     Validate that a file can be read with UTF-8 encoding.
-    
+
     This is a future enhancement for better file handling.
     """
     try:

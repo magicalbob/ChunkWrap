@@ -11,7 +11,7 @@ def load_trufflehog_regexes():
     """Load TruffleHog regex patterns from JSON file."""
     if not os.path.exists(TRUFFLEHOG_REGEX_FILE):
         return {}
-    
+
     try:
         with open(TRUFFLEHOG_REGEX_FILE, 'r') as f:
             return json.load(f)
@@ -23,7 +23,7 @@ def load_trufflehog_regexes():
 def validate_regex_patterns(patterns):
     """Validate that regex patterns are compilable."""
     valid_patterns = {}
-    
+
     for key, pattern in patterns.items():
         try:
             re.compile(pattern)
@@ -31,7 +31,7 @@ def validate_regex_patterns(patterns):
         except re.error as e:
             print(f"Warning: Invalid regex pattern for '{key}': {e}")
             continue
-    
+
     return valid_patterns
 
 
@@ -39,10 +39,10 @@ def mask_secrets(text, regex_patterns):
     """Mask sensitive information using TruffleHog regex patterns."""
     if not text or not regex_patterns:
         return text
-    
+
     # Validate patterns before using them
     valid_patterns = validate_regex_patterns(regex_patterns)
-    
+
     masked_text = text
     for key, pattern in valid_patterns.items():
         try:
@@ -50,7 +50,7 @@ def mask_secrets(text, regex_patterns):
         except re.error as e:
             print(f"Warning: Error applying regex pattern '{key}': {e}")
             continue
-    
+
     return masked_text
 
 

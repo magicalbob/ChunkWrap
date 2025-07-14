@@ -73,7 +73,7 @@ def print_progress_info(args, chunk_info):
     """Print information about processing progress."""
     if len(args.file) > 1:
         print(f"Processing {len(args.file)} files: {', '.join(args.file)}")
-    
+
     if chunk_info['is_last']:
         print("That was the last chunk! Use --reset for new file or prompt.")
     else:
