@@ -201,7 +201,6 @@ Roadmap
 ### Future considerations
 
 -   **Chunk overlap**: Add optional overlap between chunks to preserve context across boundaries
--   **Smart chunking**: Break at natural boundaries (sentences, paragraphs) rather than arbitrary character counts
 -   **Output formats**: Support for different wrapper formats (XML tags, markdown blocks, etc.)
 -   **Parallel processing**: For very large file sets, allow processing multiple chunks simultaneously
 -   **Integration modes**: Direct API integration with popular LLM services

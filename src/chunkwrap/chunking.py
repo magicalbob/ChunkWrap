@@ -31,8 +31,7 @@ def chunk_at_boundaries(text, chunk_size, boundary_chars=None):
     if boundary_chars is None:
         boundary_chars = ['\n\n', '\n', '. ', ' ']
 
-    # For now, just use simple chunking
-    # TODO: Implement smart boundary detection
+    # Just use simple chunking
     return chunk_file(text, chunk_size)
 
 
