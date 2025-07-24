@@ -4,7 +4,7 @@ from .file_handler import read_files
 from .chunking import chunk_file, get_chunk_info
 from .security import load_trufflehog_regexes, mask_secrets
 from .state import read_state, write_state
-from .output import create_prompt_text, format_chunk_wrapper, output_chunk, print_progress_info
+from .output import create_prompt_text, format_json_wrapper, output_chunk, print_progress_info
 
 
 class ChunkProcessor:
@@ -57,11 +57,11 @@ class ChunkProcessor:
         # Create appropriate prompt text
         prompt_text = create_prompt_text(args.prompt, self.config, chunk_info, args)
 
-        # Format the complete wrapper
-        wrapper = format_chunk_wrapper(prompt_text, masked_chunk, chunk_info)
+        # Format the complete JSON wrapper
+        json_wrapper = format_json_wrapper(prompt_text, masked_chunk, chunk_info, args, self.config)
 
         # Output the chunk
-        return output_chunk(wrapper, args, chunk_info)
+        return output_chunk(json_wrapper, args, chunk_info)
 
     def get_current_chunk(self):
         """Get information about the current chunk without processing."""

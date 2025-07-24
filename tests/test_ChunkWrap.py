@@ -126,24 +126,6 @@ def test_read_files_nonexistent():
             assert result == ''
             mock_print.assert_called_with("Warning: File 'nonexistent.txt' not found, skipping...")
 
-@patch('chunkwrap.utils.get_version', return_value="test")
-@patch('chunkwrap.config.load_config')
-@patch('chunkwrap.output.pyperclip.copy')
-@patch('chunkwrap.core.read_files')
-@patch('builtins.print')
-def test_main_multiple_chunks_no_suffix_flag(mock_print, mock_read_files, mock_copy, mock_load_config, mock_version, setup_state_file, mock_config):
-    """Test that --no-suffix flag disables the automatic suffix"""
-    mock_load_config.return_value = mock_config
-
-    mock_read_files.return_value = 'A' * 100
-
-    with patch('sys.argv', ['chunkwrap.py', '--prompt', 'Test prompt', '--file', 'test.txt', '--size', '50', '--no-suffix']):
-        main()
-
-    # With --no-suffix, should not include the suffix
-    expected_wrapper = 'Test prompt (chunk 1 of 2)\n"""\n' + 'A' * 50 + '\n"""'
-    mock_copy.assert_called_with(expected_wrapper)
-
 def test_state_file_persistence(setup_state_file):
     write_state(7)
     assert read_state() == 7

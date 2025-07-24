@@ -19,15 +19,19 @@ def get_config_file_path():
     """Get the full path to the configuration file."""
     return get_config_dir() / 'config.json'
 
-
 def create_default_config():
     """Create the default configuration dictionary."""
     return {
         "default_chunk_size": 10000,
         "intermediate_chunk_suffix": " Please provide only a brief acknowledgment that you've received this chunk. Save your detailed analysis for the final chunk.",
-        "final_chunk_suffix": "Please now provide your full, considered response to all previous chunks.",
+        "final_chunk_suffix": " Please now provide your full, considered response to all previous chunks.",
         "output": "clipboard",
-        "output_file": None
+        "output_file": None,
+        "json_protocol": {
+            "version": "1.0",
+            "validate_responses": False,  # Changed from True
+            "include_metadata": True
+        }
     }
 
 
@@ -50,6 +54,7 @@ def load_config():
             json.dump(default_config, f, indent=2)
 
         print(f"Created default configuration file at: {config_file}")
+        print("Updated configuration for JSON protocol v1.0")
         return default_config
 
     try:
@@ -63,6 +68,7 @@ def load_config():
         if merged_config != user_config:
             with open(config_file, 'w') as f:
                 json.dump(merged_config, f, indent=2)
+            print("Configuration updated for JSON protocol v1.0")
 
         return merged_config
 

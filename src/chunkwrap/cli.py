@@ -13,12 +13,12 @@ def create_parser():
     config = load_config()
 
     parser = argparse.ArgumentParser(
-        description="Split file(s) into chunks and wrap each chunk for LLM processing."
+        description="Split file(s) into chunks and wrap each chunk for LLM processing using JSON protocol."
     )
 
-    parser.add_argument('--prompt', type=str, help='Prompt text for regular chunks')
+    parser.add_argument('--prompt', type=str, help='Prompt text for regular chunks (will be wrapped in JSON)')
     parser.add_argument('--file', type=str, nargs='+', help='File(s) to process')
-    parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different)')
+    parser.add_argument('--lastprompt', type=str, help='Prompt for the last chunk (if different, will be wrapped in JSON)')
     parser.add_argument('--reset', action='store_true', help='Reset chunk index and start over')
     parser.add_argument('--size', type=int, default=config['default_chunk_size'],
                        help=f'Chunk size (default: {config["default_chunk_size"]})')
@@ -29,10 +29,10 @@ def create_parser():
     parser.add_argument('--version', action='version', version=f'%(prog)s {get_version()}')
     parser.add_argument('--output', choices=['clipboard', 'stdout', 'file'],
                         default=config.get('output', 'clipboard'),
-                        help='Where to send the output (default: clipboard or config override)')
+                        help='Where to send the JSON output (default: clipboard or config override)')
     parser.add_argument('--output-file', type=str,
                         default=config.get('output_file'),
-                        help='Output file name (used if --output file)')
+                        help='Output file name for JSON content (used if --output file)')
 
     return parser
 
