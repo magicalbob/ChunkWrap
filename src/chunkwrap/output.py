@@ -55,18 +55,22 @@ def format_chunk_wrapper(prompt_text, masked_chunk, chunk_info, args=None, confi
 def format_json_wrapper(prompt_text, masked_chunk, chunk_info, args, config):
     """Format the chunk with JSON protocol wrapper."""
     metadata = create_json_metadata(chunk_info, args, config)
-    
+
+    # Determine if this is for LLM processing or human consumption
+    is_for_llm = getattr(args, 'llm_mode', False)  # Add this flag
+
     json_payload = {
         "metadata": metadata,
         "prompt": prompt_text,
         "content": masked_chunk,
         "instructions": {
-            "response_format": "json",
-            "required_fields": ["acknowledgment", "analysis_ready"] if not chunk_info["is_last"] else ["response", "summary"],
+            "response_format": "json" if is_for_llm else "natural",
+            "target_audience": "llm" if is_for_llm else "human",
+            "required_fields": [...] if is_for_llm else [],
             "processing_notes": []
         }
     }
-    
+
     return json.dumps(json_payload, indent=2, ensure_ascii=False)
 
 
