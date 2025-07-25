@@ -17,6 +17,7 @@ build:
   script:
     - python3 -m venv /tmp/venv
     - source /tmp/venv/bin/activate
+    - pip install -e ".[dev]"
     - python3 -m build  
   artifacts:
     paths:
@@ -31,7 +32,7 @@ publish:
   script:
     - python3 -m venv /tmp/venv
     - source /tmp/venv/bin/activate
-    - pip install twine
+    - pip install -e ".[dev]"
     - twine upload --repository-url https://nexus.ellisbs.co.uk/repository/pypi-hosted/ --username admin --password $PYPI_PASSWORD dist/*
   dependencies:
     - build
