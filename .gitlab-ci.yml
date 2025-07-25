@@ -1,4 +1,6 @@
 stages:
+  - build
+  - publish
   - test
   - scan
 
@@ -7,7 +9,31 @@ variables:
   GIT_STRATEGY: clone
   GIT_DEPTH: 0
 
-# Python test job
+build:
+  image: docker.ellisbs.co.uk:5190/ubuntu:24.04
+  stage: build
+  tags:
+    - linux
+  script:
+    - python3 setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist/*.tar.gz
+      - dist/*.whl
+
+publish:
+  image: docker.ellisbs.co.uk:5190/ubuntu:24.04
+  stage: publish
+  tags:
+    - linux
+  script:
+    - python3 -m venv /tmp/venv
+    - source /tmp/venv/bin/activate
+    - pip install twine
+    - twine upload --repository-url https://nexus.ellisbs.co.uk/repository/pypi-hosted/ --username admin --password $PYPI_PASSWORD dist/*
+  dependencies:
+    - build
+
 test_python_job:
   image: docker.ellisbs.co.uk:5190/ubuntu:24.04
   stage: test
@@ -22,7 +48,6 @@ test_python_job:
     paths:
       - coverage.xml
 
-# SonarQube scan job
 scan_job:
   image: docker.ellisbs.co.uk:5190/ubuntu:24.04
   stage: scan
