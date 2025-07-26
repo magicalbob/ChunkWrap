@@ -42,7 +42,7 @@ def create_prompt_text(base_prompt, config, chunk_info, args):
 def format_chunk_wrapper(prompt_text, masked_chunk, chunk_info, args=None, config=None):
     """Format the chunk with JSON protocol wrapper."""
     # This function maintains compatibility with existing calls while using JSON
-    if args is None or config is None:
+    if args is None:
         # Fallback to simple format if called without full context
         if chunk_info['is_last']:
             return f'{prompt_text}\n"""\n{masked_chunk}\n"""'
@@ -78,7 +78,9 @@ def handle_clipboard_output(content, chunk_info):
     """Copy content to clipboard and show confirmation."""
     try:
         pyperclip.copy(content)
-        print(f"JSON-wrapped chunk {chunk_info['index']+1} of {chunk_info['total']} is now in the paste buffer.")
+        chunk_num = chunk_info['index'] + 1
+        total_chunks = chunk_info['total']
+        print(f"JSON-wrapped chunk {chunk_num} of {total_chunks} is now in the paste buffer.")
         return True
     except Exception as e:
         print(f"Error copying to clipboard: {e}")
@@ -96,7 +98,9 @@ def handle_file_output(content, output_file, chunk_info):
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"JSON-wrapped chunk {chunk_info['index']+1} of {chunk_info['total']} written to {output_file}.")
+        chunk_num = chunk_info['index'] + 1
+        total_chunks = chunk_info['total']
+        print(f"JSON-wrapped chunk {chunk_num} of {total_chunks} written to {output_file}.")
         return True
     except Exception as e:
         print(f"Error writing to file: {e}")
@@ -119,9 +123,10 @@ def output_chunk(content, args, chunk_info):
 def print_progress_info(args, chunk_info):
     """Print information about processing progress."""
     if len(args.file) > 1:
-        print(f"Processing {len(args.file)} files: {', '.join(args.file)}")
+        file_list = ', '.join(args.file)
+        print(f"Processing {len(args.file)} files: {file_list}")
 
-    print(f"Using JSON protocol v1.0 for structured LLM communication")
+    print("Using JSON protocol v1.0 for structured LLM communication")
     
     if chunk_info['is_last']:
         print("That was the last chunk! Use --reset for new file or prompt.")
