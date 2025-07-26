@@ -4,13 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chunkwrap"
-version = "2.2.0"
+version = "2.3.0"
 description = "A project that splits files and copies them to paste buffer with context for an LLM."
 readme = "README.md"
 authors = [
     { name = "Ian Ellis", email = "ellisiana@gmail.com" }
 ]
-license = { file = "LICENSE" }
+license = "GPL-3.0-or-later"
+classifiers = [
+  # Remove the license classifier entirely!
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent"
+]
+
 keywords = ["copilot", "llm", "development", "project assistance"]
 
 dependencies = [
@@ -38,6 +44,7 @@ chunkwrap = "chunkwrap.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
