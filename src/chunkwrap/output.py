@@ -59,6 +59,11 @@ def format_json_wrapper(prompt_text, masked_chunk, chunk_info, args, config):
     # Determine if this is for LLM processing or human consumption
     is_for_llm = getattr(args, 'llm_mode', False)  # Add this flag
 
+    # Include config information in the payload for completeness
+    processing_notes = []
+    if config:
+        processing_notes.append("Configuration applied during processing")
+
     json_payload = {
         "metadata": metadata,
         "prompt": prompt_text,
@@ -67,7 +72,7 @@ def format_json_wrapper(prompt_text, masked_chunk, chunk_info, args, config):
             "response_format": "json" if is_for_llm else "natural",
             "target_audience": "llm" if is_for_llm else "human",
             "required_fields": [...] if is_for_llm else [],
-            "processing_notes": []
+            "processing_notes": processing_notes
         }
     }
 
