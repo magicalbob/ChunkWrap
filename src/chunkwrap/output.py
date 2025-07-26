@@ -5,7 +5,7 @@ import pyperclip
 from datetime import datetime
 
 
-def create_json_metadata(chunk_info, args, config):
+def create_json_metadata(chunk_info, args):
     """Create metadata object for JSON protocol."""
     return {
         "protocol_version": "1.0",
@@ -54,7 +54,7 @@ def format_chunk_wrapper(prompt_text, masked_chunk, chunk_info, args=None, confi
 
 def format_json_wrapper(prompt_text, masked_chunk, chunk_info, args, config):
     """Format the chunk with JSON protocol wrapper."""
-    metadata = create_json_metadata(chunk_info, args, config)
+    metadata = create_json_metadata(chunk_info, args)
 
     # Determine if this is for LLM processing or human consumption
     is_for_llm = getattr(args, 'llm_mode', False)  # Add this flag
