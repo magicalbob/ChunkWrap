@@ -1,7 +1,6 @@
 """File operations and content processing for chunkwrap."""
 
 import os
-from pathlib import Path
 
 
 def validate_file_paths(file_paths):
