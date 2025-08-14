@@ -4,20 +4,33 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chunkwrap"
-version = "2.3.0"
-description = "A project that splits files and copies them to paste buffer with context for an LLM."
+version = "2.4.1"
+description = "Command-line tool to select code/docs for LLMs with secret masking and a hard cap on final output size."
 readme = "README.md"
 authors = [
     { name = "Ian Ellis", email = "ellisiana@gmail.com" }
 ]
-license = "GPL-3.0-or-later"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
 classifiers = [
-  # Remove the license classifier entirely!
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
-  "Operating System :: OS Independent"
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Build Tools",
+  "Topic :: Utilities"
 ]
 
-keywords = ["copilot", "llm", "development", "project assistance"]
+keywords = [
+  "cli", "chunking", "secret-masking", "json", "clipboard",
+  "context-window", "token-budget",
+  "chatgpt", "openai", "claude", "anthropic", "gemini", "perplexity", "copilot"
+]
 
 dependencies = [
     "pyperclip>=1.9.0"
@@ -38,6 +51,8 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/magicalbob/chunkwrap/wiki"
 Repository = "https://github.com/magicalbob/chunkwrap"
+Issues = "https://github.com/magicalbob/chunkwrap/issues"
+Changelog = "https://github.com/magicalbob/chunkwrap/releases"
 
 [project.scripts]
 chunkwrap = "chunkwrap.cli:main"
@@ -45,13 +60,15 @@ chunkwrap = "chunkwrap.cli:main"
 [tool.setuptools]
 package-dir = {"" = "src"}
 include-package-data = true
+license-files = ["LICENSE"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["chunkwrap*"]
     
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py39']
     
 [tool.pytest.ini_options]
 testpaths = ["tests"]

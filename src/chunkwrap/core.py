@@ -106,7 +106,7 @@ class ChunkProcessor:
         # Keep existing behavior (headers on) unless you later add a flag.
         include_headers = True
 
-        content = read_files(args.file, include_headers=include_headers) if hasattr(read_files, "__call__") else read_files(args.file)
+        content = read_files(args.file) if hasattr(read_files, "__call__") else read_files(args.file)
         if not content.strip():
             print("No content found in any of the specified files.")
             return
