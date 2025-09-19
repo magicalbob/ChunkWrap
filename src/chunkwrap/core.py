@@ -104,7 +104,6 @@ class ChunkProcessor:
         """Process files according to the provided arguments."""
         # Decide whether to inline FILE headers inside the content.
         # Keep existing behavior (headers on) unless you later add a flag.
-        include_headers = True
 
         content = read_files(args.file) if hasattr(read_files, "__call__") else read_files(args.file)
         if not content.strip():
